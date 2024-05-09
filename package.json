@@ -33,7 +33,7 @@
     "**/*.{js,mjs,cjs}": [
       "eslint --fix"
     ],
-    "**/*.{js,mjs,cjs,jsx,json,md,gyp}": [
+    "**/*.{js,mjs,cjs,jsx,json,md}": [
       "prettier --write"
     ]
   }
