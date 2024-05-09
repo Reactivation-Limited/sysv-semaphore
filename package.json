@@ -1,13 +1,13 @@
 {
   "name": "example",
-  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "test",
-    "install": "swig -c++ -o OSX.cxx -javascript -node OSX.i && node-gyp rebuild",
+    "test": "node node_modules/jest/bin/jest.js --roots src",
+    "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false --roots src",
     "prepare": "husky",
+    "install": "swig -c++ -o OSX.cxx -javascript -node OSX.i && node-gyp rebuild",
     "format": "prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
     "lint": "eslint src"
   },

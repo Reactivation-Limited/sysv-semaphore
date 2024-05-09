@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import jest from 'eslint-plugin-jest';
-import globals from 'globals';
+const js = require('@eslint/js');
+const jest = require('eslint-plugin-jest');
+const globals = require('globals');
 
 const jestGlobals = Object.keys(jest.environments.globals.globals).reduce(
   (object, key) =>
@@ -13,7 +13,7 @@ const jestGlobals = Object.keys(jest.environments.globals.globals).reduce(
   {}
 );
 
-export default [
+module.exports = [
   js.configs.recommended,
   {
     files: ['**/*.js'],
