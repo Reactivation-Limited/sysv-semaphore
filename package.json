@@ -12,6 +12,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "clang-format": "1.8.0",
     "colors": "1.4.0",
     "debug": "4.3.4",
     "node-addon-api": "*",
@@ -33,6 +34,9 @@
   "lint-staged": {
     "**/*.{js,mjs,cjs}": [
       "eslint --fix"
+    ],
+    "src/**/*.{h,c,cpp}": [
+      "clang-format -i"
     ],
     "**/*.{js,mjs,cjs,jsx,json,md}": [
       "prettier --write"

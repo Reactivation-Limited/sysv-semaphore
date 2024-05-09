@@ -1,7 +1,6 @@
-#include <sys/file.h>
-#include <sys/errno.h>
 #include "errnoname/errnoname.h"
-
+#include <sys/errno.h>
+#include <sys/file.h>
 
 class Flock {
 public:
