@@ -1,0 +1,7 @@
+.env
+node
+/node_modules/
+/coverage/
+
+*.spike.js
+/build
