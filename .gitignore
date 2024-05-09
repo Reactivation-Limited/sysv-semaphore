@@ -3,5 +3,6 @@ node
 /node_modules/
 /coverage/
 
+OSX.cxx
 *.spike.js
 /build
