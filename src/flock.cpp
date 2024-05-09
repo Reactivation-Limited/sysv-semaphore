@@ -1,5 +1,5 @@
 #include "flock.h"
-#include <errnoname/errnoname.h>
+#include <errnoname.h>
 #include <sys/errno.h>
 #include <sys/file.h>
 

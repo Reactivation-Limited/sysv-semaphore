@@ -1,15 +1,23 @@
 #include "semaphore.h"
+#include "errnoname.h"
 #include <cstring>
-#include <errnoname/errnoname.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/errno.h>
 
-void Semaphore::open(const char *name, unsigned int value = 1,
-                     int oflag = o_creat, int mode = 0600) {
-  n = new char[256];
-  n[255] = '\0';
-  std::strncpy(n, name, 255);
+Semaphore::Semaphore() {
+  s = SEM_FAILED;
+  n = NULL;
+};
+
+void Semaphore::open(const char *name, unsigned int value, int oflag,
+                     int mode) {
+  if (s == SEM_FAILED) {
+    throw "semaphore is already open";
+  }
+  n = new char[31];
+  n[30] = '\0';
+  std::strncpy(n, name, 30);
   do {
     s = sem_open(name, oflag, mode, value);
     if (s != SEM_FAILED) {
@@ -51,16 +59,14 @@ void Semaphore::close() {
   if (sem_close(s) == -1) {
     throw errnoname(errno);
   }
-  s = NULL;
-  delete n;
-  n = NULL;
+  s = SEM_FAILED;
 }
 
 void Semaphore::unlink() {
   if (sem_unlink(n) == -1) {
     throw errnoname(errno);
   }
-  s = NULL;
+  s = SEM_FAILED;
   delete n;
   n = NULL;
 }
