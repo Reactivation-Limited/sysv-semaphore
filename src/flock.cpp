@@ -11,7 +11,7 @@ void Flock::share(int fd) {
 };
 
 bool Flock::shareNB(int fd) {
-  if(flock(fd, LOCK_SH & LOCK_NB) == 0) {
+  if(flock(fd, LOCK_SH | LOCK_NB) == 0) {
     return true;
   }
   if(errno == EWOULDBLOCK) {
@@ -28,7 +28,7 @@ void Flock::exclusive(int fd) {
 };
 
 bool Flock::exclusiveNB(int fd) {
-  if(flock(fd, LOCK_EX & LOCK_NB) == 0) {
+  if(flock(fd, LOCK_EX | LOCK_NB) == 0) {
     return true;
   }
   if(errno == EWOULDBLOCK) {

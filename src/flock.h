@@ -2,8 +2,6 @@
 #include <sys/errno.h>
 #include "errnoname/errnoname.h"
 
-const int lock_sh = LOCK_SH;
-const int lock_ex = LOCK_EX;
 
 class Flock {
 public:
