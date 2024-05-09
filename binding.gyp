@@ -8,7 +8,7 @@
     "sources": [ "src/semaphore.cpp", "src/flock.cpp", "OSX.cxx" ],
     "cflags_cc!": ["-fno-exceptions"],
     "cflags_cc": ["-fexceptions"],
-    'include_dirs': ['src-vendor/errnoname'],
+    'include_dirs': ["node_modules/node-addon-api", "src-vendor/errnoname"],
     "conditions": [
       ["OS=='mac'", {
         "OTHER_CPLUSPLUSFLAGS" : [ "-std=c++17", "-stdlib=libc++" ],
