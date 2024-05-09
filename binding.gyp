@@ -8,6 +8,7 @@
     "sources": [ "src/semaphore.cpp", "src/flock.cpp", "OSX.cxx" ],
     "cflags_cc!": ["-fno-exceptions"],
     "cflags_cc": ["-fexceptions"],
+    'include_dirs': ['src-vendor'],
     "conditions": [
       ["OS=='mac'", {
         "OTHER_CPLUSPLUSFLAGS" : [ "-std=c++17", "-stdlib=libc++" ],

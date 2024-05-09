@@ -1,4 +1,5 @@
 #include <semaphore.h>
+#include <stddef.h>
 
 const int o_creat = O_CREAT;
 const int o_excl = O_EXCL;
@@ -12,10 +13,11 @@ const int o_ow = 0x02;
 class Semaphore {
   char *n = NULL;
   sem_t *s = NULL;
+
 public:
   Semaphore();
   ~Semaphore();
-  void open(const char *name,  unsigned int value, int oflag, int mode);
+  void open(const char *name, unsigned int value, int oflag, int mode);
   void wait();
   bool trywait();
   void post();
