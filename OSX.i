@@ -4,7 +4,7 @@
 #define NAPI_ENABLE_CPP_EXCEPTIONS
 #include "node_modules/node-addon-api/napi.h"
 #include "src/errnoname/errnoname.c"
-// #include "src/semaphore.h"
+#include "src/semaphore.h"
 #include "src/flock.h"
 %}
 
@@ -18,6 +18,6 @@
     SWIG_exception(SWIG_RuntimeError, "Unknown exception");
   }
 }
-// %include "src/semaphore.h"
+%include "src/semaphore.h"
 %nodefaultctor Flock;
 %include "src/flock.h"
