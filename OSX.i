@@ -2,11 +2,11 @@
 
 %{
 #define NAPI_ENABLE_CPP_EXCEPTIONS
+#include <errnoname.c>
 #include "src/semaphore.h"
 #include "src/flock.h"
 #include "src/mode.h"
 #include "node_modules/node-addon-api/napi.h"
-#include <errnoname/errnoname.c>
 %}
 
 %include exception.i

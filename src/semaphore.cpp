@@ -1,6 +1,6 @@
 #include "semaphore.h"
-#include "errnoname.h"
 #include <cstring>
+#include <errnoname.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/errno.h>
