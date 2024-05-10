@@ -5,12 +5,13 @@
 class Semaphore {
   char *n;
   sem_t *s;
-
+  // create(const char *name, int oflags, int mode, unsigned int value);
 public:
   Semaphore();
   ~Semaphore(){};
-  void open(const char *name, unsigned int value = 1, int oflag = O_CREAT,
-            int mode = 0600);
+  void create(const char *name, int mode, unsigned int value);
+  void createExclusive(const char *name, int mode, unsigned int value);
+  void open(const char *name);
   void wait();
   bool trywait();
   void post();
