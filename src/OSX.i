@@ -4,8 +4,8 @@
 #define NAPI_ENABLE_CPP_EXCEPTIONS
 #include <napi.h>
 #include <errnoname.c>
-#include "src/semaphore.h"
-#include "src/flock.h"
+#include "semaphore.h"
+#include "flock.h"
 %}
 
 %include exception.i
@@ -20,6 +20,6 @@
   }
 }
 
-%include "src/semaphore.h"
+%include "semaphore.h"
 %nodefaultctor Flock;
-%include "src/flock.h"
+%include "flock.h"
