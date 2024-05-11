@@ -3,18 +3,21 @@
 #include <stdio.h>
 
 class Semaphore {
-  char *n;
   sem_t *s;
   // create(const char *name, int oflags, int mode, unsigned int value);
+  Semaphore(sem_t *s) : s(s){};
+  static Semaphore *create(const char *name, int oflags, int mode, unsigned int value);
+
 public:
-  Semaphore();
-  ~Semaphore(){};
-  void create(const char *name, int mode, unsigned int value);
-  void createExclusive(const char *name, int mode, unsigned int value);
-  void open(const char *name);
+  ~Semaphore();
+  bool valueOf() { return s != SEM_FAILED; };
   void wait();
   bool trywait();
   void post();
   void close();
-  void unlink();
+
+  static Semaphore *createShared(const char *name, int mode, unsigned int value);
+  static Semaphore *createExclusive(const char *name, int mode, unsigned int value);
+  static Semaphore *open(const char *name);
+  static void unlink(const char *name);
 };

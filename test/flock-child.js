@@ -28,11 +28,7 @@ const commands = {
     state = 'exclusive';
     send('exclusive');
   },
-  'unlock-later': () => {
-    setTimeout(() => {
-      commands.unlock();
-    }, 100);
-  },
+  'unlock-later': () => setTimeout(commands.unlock, 100),
   unlock: () => {
     Flock.unlock(F);
     state = 'share';
@@ -55,7 +51,7 @@ process.on('message', (message) => {
   }
 });
 
-process.send(path);
+send(path);
 
 const exit = (code) => {
   try {
