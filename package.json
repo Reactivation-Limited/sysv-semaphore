@@ -1,7 +1,7 @@
 {
-  "name": "example",
+  "name": "OSiX",
   "version": "1.0.0",
-  "description": "",
+  "description": "Provides access the IPC system calls on unix based platforms",
   "main": "index.js",
   "scripts": {
     "test": "node node_modules/jest/bin/jest.js --roots src",
@@ -20,7 +20,7 @@
     "node-gyp": "10.1.0"
   },
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "gypfile": true,
   "devDependencies": {
     "@eslint/js": "9.2.0",
