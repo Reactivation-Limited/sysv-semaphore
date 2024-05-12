@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "LLDB OSiX wrapper",
+      "type": "lldb",
+      "sourceLanguages": ["node", "c++"],
+      "program": "${workspaceFolder}/node",
+      "args": ["${workspaceFolder}/sem.js"],
+      "request": "launch",
+      "stopOnEntry": true
+    }
+  ]
+}
