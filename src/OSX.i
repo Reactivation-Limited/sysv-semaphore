@@ -5,6 +5,7 @@
 #include <napi.h>
 #include <errnoname.c>
 #include "semaphore-posix.h"
+#include "semaphore-sysv.h"
 #include "flock.h"
 #include "mode.h"
 %}
@@ -22,6 +23,7 @@
 }
 
 %include "semaphore-posix.h"
+%include "semaphore-sysv.h"
 %nodefaultctor Flock;
 %include "flock.h"
 %include "mode.h"

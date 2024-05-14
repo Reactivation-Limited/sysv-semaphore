@@ -4,7 +4,7 @@ const { fork } = require('node:child_process');
 const childMessages = require('../test/parent.js');
 const debug = require('debug')('flock-test');
 
-describe('Semaphore', () => {
+describe('Flock', () => {
   it('should be defined', () => {
     expect(Flock).not.toBe(undefined);
   });

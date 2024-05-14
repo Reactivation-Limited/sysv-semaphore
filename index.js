@@ -17,3 +17,4 @@ module.exports.GGID = stuff.GGID;
 module.exports.STIK = stuff.STIK;
 exports.Flock = stuff.Flock;
 exports.SemaphoreP = stuff.SemaphoreP;
+exports.SemaphoreV = stuff.SemaphoreV;
