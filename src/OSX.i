@@ -4,7 +4,7 @@
 #define NAPI_ENABLE_CPP_EXCEPTIONS
 #include <napi.h>
 #include <errnoname.c>
-#include "semaphore.h"
+#include "semaphore-posix.h"
 #include "flock.h"
 #include "mode.h"
 %}
@@ -21,7 +21,7 @@
   }
 }
 
-%include "semaphore.h"
+%include "semaphore-posix.h"
 %nodefaultctor Flock;
 %include "flock.h"
 %include "mode.h"

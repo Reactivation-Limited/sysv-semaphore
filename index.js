@@ -16,4 +16,4 @@ module.exports.SUID = stuff.SUID;
 module.exports.GGID = stuff.GGID;
 module.exports.STIK = stuff.STIK;
 exports.Flock = stuff.Flock;
-exports.Semaphore = stuff.Semaphore;
+exports.SemaphoreP = stuff.SemaphoreP;

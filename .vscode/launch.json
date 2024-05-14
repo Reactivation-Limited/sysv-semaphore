@@ -2,11 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "LLDB OSiX wrapper",
+      "name": "LLDB sem-posix",
       "type": "lldb",
       "sourceLanguages": ["node", "c++"],
       "program": "${workspaceFolder}/node",
-      "args": ["${workspaceFolder}/sem.js"],
+      "args": ["debug/sem-posix.js"],
       "request": "launch",
       "stopOnEntry": true
     }

@@ -1,48 +1,49 @@
-#include "semaphore.h"
+#include "semaphore-posix.h"
+
 #include <errnoname.h>
 #include <stddef.h>
 #include <sys/errno.h>
 
-Semaphore::~Semaphore() {
+SemaphoreP::~SemaphoreP() {
   if (s != SEM_FAILED) {
     sem_close(s);
   }
   s = NULL;
 };
 
-Semaphore *Semaphore::open(const char *name) {
+SemaphoreP *SemaphoreP::open(const char *name) {
   do {
     auto s = sem_open(name, 0);
     if (s != SEM_FAILED) {
-      return new Semaphore(s);
+      return new SemaphoreP(s);
     }
   } while (errno == EINTR);
   throw errnoname(errno);
 }
 
-Semaphore *Semaphore::create(const char *name, int oflags, int mode, unsigned int value) {
+SemaphoreP *SemaphoreP::create(const char *name, int oflags, int mode, unsigned int value) {
   do {
     auto s = sem_open(name, oflags, mode, value);
     if (s != SEM_FAILED) {
-      return new Semaphore(s);
+      return new SemaphoreP(s);
     }
   } while (errno == EINTR);
   throw errnoname(errno);
 }
 
-Semaphore *Semaphore::createExclusive(const char *name, int mode, unsigned int value)
+SemaphoreP *SemaphoreP::createExclusive(const char *name, int mode, unsigned int value)
 
 {
   return create(name, O_CREAT | O_EXCL, mode, value);
 }
 
-Semaphore *Semaphore::createShared(const char *name, int mode, unsigned int value)
+SemaphoreP *SemaphoreP::createShared(const char *name, int mode, unsigned int value)
 
 {
   return create(name, O_CREAT, mode, value);
 }
 
-void Semaphore::wait() {
+void SemaphoreP::wait() {
   if (s == SEM_FAILED) {
     throw "already closed";
   }
@@ -55,7 +56,7 @@ void Semaphore::wait() {
   }
 }
 
-bool Semaphore::trywait() {
+bool SemaphoreP::trywait() {
   if (s == SEM_FAILED) {
     throw "already closed";
   }
@@ -70,20 +71,20 @@ bool Semaphore::trywait() {
   throw errnoname(errno);
 }
 
-void Semaphore::post() {
+void SemaphoreP::post() {
   if (sem_post(s) == -1) {
     throw errnoname(errno);
   }
 }
 
-void Semaphore::close() {
+void SemaphoreP::close() {
   if (s != SEM_FAILED && sem_close(s) == -1) {
     throw errnoname(errno);
   }
   s = SEM_FAILED;
 }
 
-void Semaphore::unlink(const char *name) {
+void SemaphoreP::unlink(const char *name) {
   if (name == NULL) {
     return;
   }

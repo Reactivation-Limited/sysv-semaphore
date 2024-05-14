@@ -1,4 +1,4 @@
-const { Semaphore } = require('../build/Release/OSX.node');
+const { SemaphoreP } = require('../build/Release/OSX.node');
 
 const debug = require('debug')('semaphore-child-process');
 
@@ -9,7 +9,7 @@ const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = Semaphore.createExclusive(name, 0o600, 1);
+let semaphore = SemaphoreP.createExclusive(name, 0o600, 1);
 let count = 0;
 
 const commands = {
@@ -54,7 +54,7 @@ send(name);
 
 const exit = (code) => {
   semaphore.close();
-  Semaphore.unlink(name);
+  SemaphoreP.unlink(name);
   process.exit(code);
 };
 
