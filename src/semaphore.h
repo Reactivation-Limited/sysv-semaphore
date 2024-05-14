@@ -1,11 +1,10 @@
 #include <semaphore.h>
-#include <stddef.h>
-#include <stdio.h>
 
 class Semaphore {
   sem_t *s;
-  // create(const char *name, int oflags, int mode, unsigned int value);
+
   Semaphore(sem_t *s) : s(s){};
+
   static Semaphore *create(const char *name, int oflags, int mode, unsigned int value);
 
 public:

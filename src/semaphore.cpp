@@ -1,5 +1,6 @@
 #include "semaphore.h"
 #include <errnoname.h>
+#include <stddef.h>
 #include <sys/errno.h>
 
 Semaphore::~Semaphore() {
