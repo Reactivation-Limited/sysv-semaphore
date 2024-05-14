@@ -6,6 +6,7 @@
 #include <errnoname.c>
 #include "semaphore.h"
 #include "flock.h"
+#include "mode.h"
 %}
 
 %include exception.i
@@ -23,3 +24,4 @@
 %include "semaphore.h"
 %nodefaultctor Flock;
 %include "flock.h"
+%include "mode.h"
