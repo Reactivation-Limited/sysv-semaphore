@@ -163,102 +163,119 @@ describe('Semaphore', () => {
             done: false
           });
         });
-      });
-    });
 
-    describe('non-blocking calls', () => {
-      describe('exclusive', () => {
-        it('should not block and return true when another process does not have an exclusive lock', async () => {
+        it('should awake a waiting process when the file is closed', async () => {
+          expect(() => Flock.share(F.fd)).not.toThrow();
+          const shared = messages.next('exclusive');
           const start = performance.now();
-
-          expect(Flock.exclusiveNB(F.fd)).toBe(true);
-          expect(performance.now() - start).toBeLessThan(100);
-        });
-
-        it('should not block and return false when another process has an shared lock', async () => {
-          const start = performance.now();
-          const share = messages.next('share');
-
-          await expect(share).resolves.toEqual({
-            value: 'share',
-            done: false
-          });
-
-          const unlocked = messages.next('unlock-later');
-
-          expect(Flock.exclusiveNB(F.fd)).toBe(false);
-          expect(performance.now() - start).toBeLessThan(100);
-
-          await expect(unlocked).resolves.toEqual({
-            value: 'unlock',
-            done: false
-          });
-        });
-
-        it('should not block and return false when another process has an exclusive lock', async () => {
-          const start = performance.now();
-          const share = messages.next('exclusive');
-
-          await expect(share).resolves.toEqual({
-            value: 'exclusive',
-            done: false
-          });
-
-          const unlocked = messages.next('unlock-later');
-
-          expect(Flock.exclusiveNB(F.fd)).toBe(false);
-          expect(performance.now() - start).toBeLessThan(100);
-
-          await expect(unlocked).resolves.toEqual({
-            value: 'unlock',
-            done: false
-          });
-        });
-      });
-
-      describe('shared', () => {
-        it('should not block and return true when another process does not have a lock', async () => {
-          const start = performance.now();
-          const unlocked = messages.next('unlock-later');
-
-          expect(Flock.shareNB(F.fd)).toBe(true);
-          expect(performance.now() - start).toBeLessThan(100);
-
-          await expect(unlocked).resolves.toEqual({
-            value: 'unlock',
-            done: false
-          });
-        });
-
-        it('should not block and return true when another process has a shared lock', async () => {
-          const start = performance.now();
-          const shared = messages.next('share');
-
+          setTimeout(F.close, 100);
           await expect(shared).resolves.toEqual({
-            value: 'share',
+            value: 'exclusive',
             done: false
           });
+          expect(performance.now() - start).toBeGreaterThan(100);
 
-          expect(Flock.shareNB(F.fd)).toBe(true);
-          expect(performance.now() - start).toBeLessThan(100);
-
-          const unlocked = messages.next('unlock');
-          await expect(unlocked).resolves.toEqual({
+          await expect(messages.next('unlock')).resolves.toEqual({
             value: 'unlock',
             done: false
           });
         });
+      });
 
-        it('should not block and return false when another process has an exclusive lock', async () => {
-          const start = performance.now();
+      describe('non-blocking calls', () => {
+        describe('exclusive', () => {
+          it('should not block and return true when another process does not have an exclusive lock', async () => {
+            const start = performance.now();
 
-          await expect(messages.next('exclusive')).resolves.toEqual({
-            value: 'exclusive',
-            done: false
+            expect(Flock.exclusiveNB(F.fd)).toBe(true);
+            expect(performance.now() - start).toBeLessThan(100);
           });
 
-          expect(Flock.shareNB(F.fd)).toBe(false);
-          expect(performance.now() - start).toBeLessThan(100);
+          it('should not block and return false when another process has an shared lock', async () => {
+            const start = performance.now();
+            const share = messages.next('share');
+
+            await expect(share).resolves.toEqual({
+              value: 'share',
+              done: false
+            });
+
+            const unlocked = messages.next('unlock-later');
+
+            expect(Flock.exclusiveNB(F.fd)).toBe(false);
+            expect(performance.now() - start).toBeLessThan(100);
+
+            await expect(unlocked).resolves.toEqual({
+              value: 'unlock',
+              done: false
+            });
+          });
+
+          it('should not block and return false when another process has an exclusive lock', async () => {
+            const start = performance.now();
+            const share = messages.next('exclusive');
+
+            await expect(share).resolves.toEqual({
+              value: 'exclusive',
+              done: false
+            });
+
+            const unlocked = messages.next('unlock-later');
+
+            expect(Flock.exclusiveNB(F.fd)).toBe(false);
+            expect(performance.now() - start).toBeLessThan(100);
+
+            await expect(unlocked).resolves.toEqual({
+              value: 'unlock',
+              done: false
+            });
+          });
+        });
+
+        describe('shared', () => {
+          it('should not block and return true when another process does not have a lock', async () => {
+            const start = performance.now();
+            const unlocked = messages.next('unlock-later');
+
+            expect(Flock.shareNB(F.fd)).toBe(true);
+            expect(performance.now() - start).toBeLessThan(100);
+
+            await expect(unlocked).resolves.toEqual({
+              value: 'unlock',
+              done: false
+            });
+          });
+
+          it('should not block and return true when another process has a shared lock', async () => {
+            const start = performance.now();
+            const shared = messages.next('share');
+
+            await expect(shared).resolves.toEqual({
+              value: 'share',
+              done: false
+            });
+
+            expect(Flock.shareNB(F.fd)).toBe(true);
+            expect(performance.now() - start).toBeLessThan(100);
+
+            const unlocked = messages.next('unlock');
+            await expect(unlocked).resolves.toEqual({
+              value: 'unlock',
+              done: false
+            });
+          });
+
+          it('should not block and return false when another process has an exclusive lock', async () => {
+            const start = performance.now();
+
+            await expect(messages.next('exclusive')).resolves.toEqual({
+              value: 'exclusive',
+              done: false
+            });
+
+            expect(Flock.shareNB(F.fd)).toBe(false);
+            expect(performance.now() - start).toBeLessThan(100);
+          });
         });
       });
     });

@@ -37,9 +37,9 @@ bool Flock::exclusiveNB(int fd) {
   throw errnoname(errno);
 };
 
-bool Flock::unlock(int fd) {
+void Flock::unlock(int fd) {
   if (flock(fd, LOCK_UN) == 0) {
-    return true;
+    return;
   }
   throw errnoname(errno);
 };
