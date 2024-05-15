@@ -16,6 +16,9 @@ describe('Semaphore', () => {
 
   describe('open, create and unlink', () => {
     // order matters
+    afterAll(() => {
+      expect(() => Semaphore.unlink(name)).not.toThrow();
+    });
     it('unlink should throw if the semaphore does not exist', () => {
       expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
     });
@@ -39,9 +42,6 @@ describe('Semaphore', () => {
     });
     it('createExclusive should create a semaphore if it does not already exist', () => {
       expect(() => Semaphore.createExclusive(name, 0o600, 1)).not.toThrow();
-    });
-    it('unlink should not throw if the semaphore exists', () => {
-      expect(() => Semaphore.unlink(name)).not.toThrow();
     });
   });
 
