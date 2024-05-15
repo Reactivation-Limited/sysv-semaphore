@@ -7,7 +7,6 @@
 #include "semaphore-posix.h"
 #include "semaphore-sysv.h"
 #include "flock.h"
-#include "mode.h"
 %}
 
 %include exception.i
@@ -26,4 +25,3 @@
 %include "semaphore-sysv.h"
 %nodefaultctor Flock;
 %include "flock.h"
-%include "mode.h"
