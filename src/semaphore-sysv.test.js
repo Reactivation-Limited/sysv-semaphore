@@ -40,12 +40,39 @@ describe('Semaphore', () => {
     it('createExclusive should create a semaphore if it does not already exist', () => {
       expect(() => Semaphore.createExclusive(name, 0o600, 1)).not.toThrow();
     });
+    it('unlink should not throw if the semaphore exists', () => {
+      expect(() => Semaphore.unlink(name)).not.toThrow();
+    });
+  });
+
+  describe('close', () => {
+    it('should unlink the semaphore if this is the last reference', () => {
+      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
+      semaphore.close();
+      expect(() => semaphore.wait()).toThrow('EINVAL');
+      expect(() => semaphore.trywait()).toThrow('EINVAL');
+      expect(() => semaphore.post()).toThrow('EINVAL');
+      expect(() => semaphore.close()).toThrow('EINVAL');
+      expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
+    });
+    it('should not unlink the semaphore if this is not the last reference', () => {
+      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
+      Semaphore.create(name, 0o600, 1);
+      semaphore.close();
+      expect(() => Semaphore.unlink(name)).not.toThrow();
+    });
+    it('should not unlink the semaphore if this is not the last reference', () => {
+      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
+      Semaphore.open(name);
+      semaphore.close();
+      expect(() => Semaphore.unlink(name)).not.toThrow();
+    });
   });
 
   describe('sempahore operations', () => {
     let semaphore;
     beforeAll(() => {
-      semaphore = Semaphore.create(name, 0o600, 1);
+      semaphore = Semaphore.createExclusive(name, 0o600, 1);
     });
     afterAll(() => {
       Semaphore.unlink(name);
