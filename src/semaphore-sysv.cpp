@@ -157,7 +157,7 @@ void SemaphoreV::close() {
   struct sembuf op;
   op.sem_num = REF_COUNT;
   op.sem_op = -1;
-  op.sem_flg = IPC_NOWAIT;
+  op.sem_flg = IPC_NOWAIT | SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno == EAGAIN) {
       if (semctl(semid, 0, IPC_RMID) == -1) {
