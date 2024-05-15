@@ -105,13 +105,12 @@ bool SemaphoreV::trywait() {
   op.sem_op = -1;
   op.sem_flg = SEM_UNDO | IPC_NOWAIT;
   while (semop(semid, &op, 1) == -1) {
-    if (errno == EINTR) {
-      continue;
-    }
     if (errno == EAGAIN) {
       return false;
     }
-    throw errnoname(errno);
+    if (errno != EINTR) {
+      throw errnoname(errno);
+    }
   }
   return true;
 }
@@ -122,9 +121,8 @@ void SemaphoreV::post() {
   op.sem_op = 1;
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
-    if (errno == EINTR) {
-      continue;
+    if (errno != EINTR) {
+      throw errnoname(errno);
     }
-    throw errnoname(errno);
   }
 }
