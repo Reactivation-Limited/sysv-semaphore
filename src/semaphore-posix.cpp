@@ -21,7 +21,7 @@ SemaphoreP *SemaphoreP::open(const char *name) {
   throw errnoname(errno);
 }
 
-SemaphoreP *SemaphoreP::create(const char *name, int oflags, int mode, unsigned int value) {
+SemaphoreP *SemaphoreP::createP(const char *name, int oflags, int mode, unsigned int value) {
   do {
     auto s = sem_open(name, oflags, mode, value);
     if (s != SEM_FAILED) {
@@ -34,13 +34,13 @@ SemaphoreP *SemaphoreP::create(const char *name, int oflags, int mode, unsigned 
 SemaphoreP *SemaphoreP::createExclusive(const char *name, int mode, unsigned int value)
 
 {
-  return create(name, O_CREAT | O_EXCL, mode, value);
+  return createP(name, O_CREAT | O_EXCL, mode, value);
 }
 
-SemaphoreP *SemaphoreP::createShared(const char *name, int mode, unsigned int value)
+SemaphoreP *SemaphoreP::create(const char *name, int mode, unsigned int value)
 
 {
-  return create(name, O_CREAT, mode, value);
+  return createP(name, O_CREAT, mode, value);
 }
 
 void SemaphoreP::wait() {

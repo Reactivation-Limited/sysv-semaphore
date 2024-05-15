@@ -6,8 +6,6 @@
 
 auto tok(const char *path) { return ftok(path, 0); }
 
-// which file to use?
-// whether it exists or not can be used to decide if to unlink the sem!
 SemaphoreV *SemaphoreV::create(const char *path, int value) {
   auto key = tok(path);
   int semid;
@@ -26,6 +24,27 @@ SemaphoreV *SemaphoreV::create(const char *path, int value) {
       // open the existing sem. can fail if another process unlinked the sem before the second call to semget
       semid = semget(key, 1, 0);
       if (semid == -1 && errno != ENOENT) {
+        throw errnoname(errno);
+      }
+    } else {
+      throw errnoname(errno);
+    }
+  } while (semid == -1); // the sem got unlinked in a race
+  return new SemaphoreV(semid);
+}
+
+SemaphoreV *SemaphoreV::createExclusive(const char *path, int value) {
+  auto key = tok(path);
+  int semid;
+
+  do {
+    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | SEM_R | SEM_A);
+    if (semid != -1) {
+      // set the initial value
+      semun arg;
+      arg.val = value;
+      if (semctl(semid, 0, SETVAL, arg) == -1) {
+        // might want to close the sem?
         throw errnoname(errno);
       }
     } else {

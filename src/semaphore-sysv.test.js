@@ -25,6 +25,9 @@ describe('Semaphore', () => {
     it('create should create a semaphore if it does not exist', () => {
       expect(() => Semaphore.create(name, 1)).not.toThrow();
     });
+    it('createExclusive should throw if the semaphore already exists', () => {
+      expect(() => Semaphore.createExclusive(name, 1)).toThrow('EEXIST');
+    });
     it('create should open a semaphore that already exists', () => {
       expect(() => Semaphore.create(name, 1)).not.toThrow();
     });
@@ -33,6 +36,9 @@ describe('Semaphore', () => {
     });
     it('unlink should not throw if the semaphore exists', () => {
       expect(() => Semaphore.unlink(name)).not.toThrow();
+    });
+    it('createExclusive should create a semaphore if it does not already exist', () => {
+      expect(() => Semaphore.createExclusive(name, 1)).not.toThrow();
     });
   });
 
@@ -64,6 +70,7 @@ describe('Semaphore', () => {
 
     it('should increment the semaphore without blocking', () => {
       expect(() => semaphore.post()).not.toThrow();
+      expect(semaphore.trywait()).toBe(true);
     });
   });
 

@@ -7,9 +7,10 @@ class SemaphoreV {
   SemaphoreV(int s) : semid(s){};
 
 public:
+  static SemaphoreV *createExclusive(const char *path, int value);
   static SemaphoreV *create(const char *path, int value);
   static SemaphoreV *open(const char *path);
-  static void unlink(const char *name);
+  static void unlink(const char *path);
 
   ~SemaphoreV();
   void wait();

@@ -33,7 +33,7 @@ describe('SemaphoreP', () => {
 
     it('should open the semaphore if it exists', () => {
       expect(++orderMatters).toBe(3);
-      expect(() => (semaphore = SemaphoreP.createShared(name, 0o600, 1))).not.toThrow();
+      expect(() => (semaphore = SemaphoreP.create(name, 0o600, 1))).not.toThrow();
     });
 
     it('should open a semaphore', () => {
@@ -62,7 +62,7 @@ describe('SemaphoreP', () => {
 
     it('should create the semaphore if it does not exist', () => {
       expect(++orderMatters).toBe(7);
-      expect(() => (semaphore = SemaphoreP.createShared(name, 0o600, 1))).not.toThrow();
+      expect(() => (semaphore = SemaphoreP.create(name, 0o600, 1))).not.toThrow();
     });
   });
 

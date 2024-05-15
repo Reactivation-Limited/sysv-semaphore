@@ -3,7 +3,6 @@ const { SemaphoreV: Semaphore } = require('../build/Debug/OSX.node');
 
 console.log(Semaphore);
 
-// const { SemaphoreP, o_creat, o_excl } = require('./src/index.js');
 const name = './tmp/semaphore-sysv';
 
 const test = async () => {
@@ -12,7 +11,7 @@ const test = async () => {
   F = await open(name, 'wx');
   try {
     console.log('sem open');
-    const s = Semaphore.open(name, 1);
+    const s = Semaphore.createExclusive(name, 1);
     if (!s.trywait()) {
       throw 'trywait false';
     }
