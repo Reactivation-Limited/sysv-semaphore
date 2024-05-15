@@ -126,3 +126,5 @@ void SemaphoreV::post() {
     }
   }
 }
+
+void SemaphoreV::close() {}
