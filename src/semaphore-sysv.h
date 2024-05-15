@@ -1,7 +1,8 @@
 class SemaphoreV {
+  int key;
   int semid;
 
-  SemaphoreV(int s) : semid(s){};
+  SemaphoreV(int key, int s) : key(key), semid(s){};
 
 public:
   static SemaphoreV *createExclusive(const char *path, int mode, int value);

@@ -46,6 +46,9 @@ describe('Semaphore', () => {
   });
 
   describe('close', () => {
+    afterAll(() => {
+      expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
+    });
     it('should unlink the semaphore if this is the last reference', () => {
       const semaphore = Semaphore.createExclusive(name, 0o600, 1);
       semaphore.close();
@@ -53,7 +56,6 @@ describe('Semaphore', () => {
       expect(() => semaphore.trywait()).toThrow('EINVAL');
       expect(() => semaphore.post()).toThrow('EINVAL');
       expect(() => semaphore.close()).toThrow('EINVAL');
-      expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
     });
     it('should not unlink the semaphore if this is not the last reference', () => {
       const semaphore = Semaphore.createExclusive(name, 0o600, 1);

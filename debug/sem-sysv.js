@@ -9,9 +9,11 @@ const test = async () => {
   let F;
   console.log('open', name);
   F = await open(name, 'wx');
+  let s;
   try {
     console.log('sem open');
-    const s = Semaphore.createExclusive(name, 0o600, 1);
+    s = Semaphore.createExclusive(name, 0o600, 1);
+    const s2 = Semaphore.create(name, 0o600, 1);
     if (!s.trywait()) {
       throw 'trywait false';
     }
@@ -22,11 +24,18 @@ const test = async () => {
     if (!s.trywait()) {
       throw 'trywait false';
     }
+    s2.close();
+    s.close(); // should unlink it
+    s.post();
   } catch (e) {
     console.log('error', e);
   } finally {
     console.log('unlink');
-    Semaphore.unlink(name);
+    try {
+      Semaphore.unlink(name);
+    } catch (error) {
+      console.log('close did not unlink');
+    }
     await F.close();
     await unlink(name);
   }
