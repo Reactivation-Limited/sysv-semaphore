@@ -51,26 +51,34 @@ describe('Semaphore', () => {
       Semaphore.unlink(name);
     });
 
+    it('should return 0', () => {
+      expect(semaphore.valueOf()).toBe(1);
+    });
+
     // order matters
     it('should should decrement the semaphore without blocking', () => {
       expect(() => semaphore.wait()).not.toThrow();
+      expect(semaphore.valueOf()).toBe(0);
     });
 
     it('should increment the semaphore without blocking', () => {
       expect(() => semaphore.post()).not.toThrow();
+      expect(semaphore.valueOf()).toBe(1);
     });
 
     it('should should decrement the semaphore and return true without blocking', () => {
       expect(semaphore.trywait()).toBe(true);
+      expect(semaphore.valueOf()).toBe(0);
     });
 
     it('should not decrement the semaphore and return false without blocking', () => {
       expect(semaphore.trywait()).toBe(false);
+      expect(semaphore.valueOf()).toBe(0);
     });
 
     it('should increment the semaphore without blocking', () => {
       expect(() => semaphore.post()).not.toThrow();
-      expect(semaphore.trywait()).toBe(true);
+      expect(semaphore.valueOf()).toBe(1);
     });
   });
 

@@ -77,6 +77,14 @@ void SemaphoreV::unlink(const char *path) {
   }
 }
 
+int SemaphoreV::valueOf() {
+  const int result = semctl(semid, 0, GETVAL);
+  if (result != -1) {
+    return result;
+  }
+  throw errnoname(errno);
+}
+
 void SemaphoreV::wait() {
   struct sembuf op;
   op.sem_num = 0;

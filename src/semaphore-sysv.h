@@ -16,4 +16,5 @@ public:
   void wait();
   bool trywait();
   void post();
+  int valueOf();
 };
