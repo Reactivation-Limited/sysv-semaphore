@@ -23,13 +23,13 @@ describe('Semaphore', () => {
       expect(() => Semaphore.open(name)).toThrow('ENOENT');
     });
     it('create should create a semaphore if it does not exist', () => {
-      expect(() => Semaphore.create(name, 1)).not.toThrow();
+      expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
     });
     it('createExclusive should throw if the semaphore already exists', () => {
-      expect(() => Semaphore.createExclusive(name, 1)).toThrow('EEXIST');
+      expect(() => Semaphore.createExclusive(name, 0o600, 1)).toThrow('EEXIST');
     });
     it('create should open a semaphore that already exists', () => {
-      expect(() => Semaphore.create(name, 1)).not.toThrow();
+      expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
     });
     it('open should open a semaphore that already exists', () => {
       expect(() => Semaphore.open(name)).not.toThrow();
@@ -38,14 +38,14 @@ describe('Semaphore', () => {
       expect(() => Semaphore.unlink(name)).not.toThrow();
     });
     it('createExclusive should create a semaphore if it does not already exist', () => {
-      expect(() => Semaphore.createExclusive(name, 1)).not.toThrow();
+      expect(() => Semaphore.createExclusive(name, 0o600, 1)).not.toThrow();
     });
   });
 
   describe('sempahore operations', () => {
     let semaphore;
     beforeAll(() => {
-      semaphore = Semaphore.create(name, 1);
+      semaphore = Semaphore.create(name, 0o600, 1);
     });
     afterAll(() => {
       Semaphore.unlink(name);
@@ -95,8 +95,6 @@ describe('Semaphore', () => {
       process.on('SIGINT', () => {
         child.kill('SIGINT');
       });
-
-      const name = Buffer.from('flock-child-' + child.pid).toString('base64');
 
       messages = childMessages(child);
       await expect(messages.next()).resolves.toEqual({ done: false, value: name });

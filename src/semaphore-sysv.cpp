@@ -6,12 +6,13 @@
 
 auto tok(const char *path) { return ftok(path, 0); }
 
-SemaphoreV *SemaphoreV::create(const char *path, int value) {
+SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
   auto key = tok(path);
   int semid;
 
+  mode &= 0x1FF;
   do {
-    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | SEM_R | SEM_A);
+    semid = semget(key, 1, mode | IPC_CREAT | IPC_EXCL);
     if (semid != -1) {
       // set the initial value
       semun arg;
@@ -33,12 +34,13 @@ SemaphoreV *SemaphoreV::create(const char *path, int value) {
   return new SemaphoreV(semid);
 }
 
-SemaphoreV *SemaphoreV::createExclusive(const char *path, int value) {
+SemaphoreV *SemaphoreV::createExclusive(const char *path, int mode, int value) {
   auto key = tok(path);
   int semid;
 
+  mode &= 0x1FF;
   do {
-    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | SEM_R | SEM_A);
+    semid = semget(key, 1, mode | IPC_CREAT | IPC_EXCL);
     if (semid != -1) {
       // set the initial value
       semun arg;

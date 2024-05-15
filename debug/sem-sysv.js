@@ -11,7 +11,7 @@ const test = async () => {
   F = await open(name, 'wx');
   try {
     console.log('sem open');
-    const s = Semaphore.createExclusive(name, 1);
+    const s = Semaphore.createExclusive(name, 0o600, 1);
     if (!s.trywait()) {
       throw 'trywait false';
     }

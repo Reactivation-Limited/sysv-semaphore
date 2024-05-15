@@ -3,13 +3,13 @@ const { SemaphoreV: Semaphore } = require('../build/Release/OSX.node');
 const debug = require('debug')('semaphore-sysv-child-process');
 
 // the child always decides on the file
-const name = Buffer.from('flock-child-' + process.pid).toString('base64');
+const name = './tmp/semaphore-sysv';
 
 const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = Semaphore.createExclusive(name, 1);
+let semaphore = Semaphore.createExclusive(name, 0o600, 1);
 let count = 0;
 
 const commands = {
