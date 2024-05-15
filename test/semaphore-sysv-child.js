@@ -9,7 +9,7 @@ const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = Semaphore.createExclusive(name, 0o600, 1);
+let semaphore = Semaphore.open(name);
 let count = 0;
 
 const commands = {

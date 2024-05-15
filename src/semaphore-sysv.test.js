@@ -80,7 +80,7 @@ describe('Semaphore', () => {
       Semaphore.unlink(name);
     });
 
-    it('should return 0', () => {
+    it('should have the initial value', () => {
       expect(semaphore.valueOf()).toBe(1);
     });
 
@@ -116,23 +116,27 @@ describe('Semaphore', () => {
     let messages;
     let child;
     beforeAll(async () => {
+      semaphore = Semaphore.createExclusive(name, 0o600, 1);
       child = fork('./test/semaphore-sysv-child.js', ['child'], {
         stdio: [process.stdin, process.stdout, process.stderr, 'ipc'],
         env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG }
       });
-
       process.on('SIGINT', () => {
         child.kill('SIGINT');
       });
-
       messages = childMessages(child);
       await expect(messages.next()).resolves.toEqual({ done: false, value: name });
-      semaphore = Semaphore.open(name);
     });
 
     afterAll(async () => {
-      child.kill();
-      await new Promise((resolve) => child.once('close', resolve));
+      child.kill('SIGKILL');
+      await new Promise((resolve) => {
+        child.once('exit', (code, signal) => {
+          code ? resolve(code) : resolve(signal);
+        });
+      });
+      semaphore.close();
+      expect(() => Semaphore.open(name)).toThrow('ENOENT');
     });
 
     describe('non blocking calls', () => {
