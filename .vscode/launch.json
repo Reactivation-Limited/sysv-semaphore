@@ -18,6 +18,15 @@
       "args": ["debug/sem-sysv.js"],
       "request": "launch",
       "stopOnEntry": true
+    },
+    {
+      "name": "LLDB try-error",
+      "type": "lldb",
+      "sourceLanguages": ["node", "c++"],
+      "program": "${workspaceFolder}/node",
+      "args": ["debug/try-error.js"],
+      "request": "launch",
+      "stopOnEntry": true
     }
   ]
 }

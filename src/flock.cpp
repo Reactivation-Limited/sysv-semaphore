@@ -2,6 +2,7 @@
 #include <errnoname.h>
 #include <sys/errno.h>
 #include <sys/file.h>
+#include <system_error>
 
 void Flock::share(int fd) {
   if (flock(fd, LOCK_SH) == 0) {
@@ -41,5 +42,5 @@ void Flock::unlock(int fd) {
   if (flock(fd, LOCK_UN) == 0) {
     return;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "flock");
 };

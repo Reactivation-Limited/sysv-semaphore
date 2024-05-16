@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node node_modules/jest/bin/jest.js --roots src",
     "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false --roots src",
-    "build:debug": "swig -c++ -o src/OSX.cpp -javascript -node src/OSX.i && node-gyp rebuild --debug",
+    "build:debug": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && node-gyp rebuild --debug",
     "prepare": "husky",
     "install": "swig -c++ -o src/OSX.cpp -javascript -node src/OSX.i && node-gyp rebuild",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
