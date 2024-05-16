@@ -5,7 +5,7 @@
   ],
   "targets": [{
     "target_name": "OSX",
-    "sources": [ "src/semaphore-sysv.cpp", "src/semaphore-posix.cpp", "src/flock.cpp", "src/OSX.cpp" ],
+    "sources": [ "src/error.cpp", "src/semaphore-sysv.cpp", "src/semaphore-posix.cpp", "src/flock.cpp", "src/OSX.cpp" ],
     'include_dirs': ["node_modules/node-addon-api", "src-vendor/errnoname"],
     "conditions": [
       ["OS=='mac'", {
