@@ -45,9 +45,6 @@ SemaphoreP *SemaphoreP::create(const char *name, int mode, unsigned int value)
 }
 
 void SemaphoreP::wait() {
-  if (s == SEM_FAILED) {
-    throw "already closed";
-  }
   int r;
   do {
     r = sem_wait(s);
@@ -58,9 +55,6 @@ void SemaphoreP::wait() {
 }
 
 bool SemaphoreP::trywait() {
-  if (s == SEM_FAILED) {
-    throw "already closed";
-  }
   do {
     if (sem_trywait(s) == 0) {
       return true;
