@@ -20,16 +20,16 @@ describe('Semaphore', () => {
       expect(() => Semaphore.unlink(name)).not.toThrow();
     });
     it('unlink should throw if the semaphore does not exist', () => {
-      expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
+      expect(() => Semaphore.unlink(name)).toThrowErrnoError('semget', 'ENOENT');
     });
     it('open should also throw if the semaphore does not exist', () => {
-      expect(() => Semaphore.open(name)).toThrow('ENOENT');
+      expect(() => Semaphore.open(name)).toThrowErrnoError('semget', 'ENOENT');
     });
     it('create should create a semaphore if it does not exist', () => {
       expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
     });
     it('createExclusive should throw if the semaphore already exists', () => {
-      expect(() => Semaphore.createExclusive(name, 0o600, 1)).toThrow('EEXIST');
+      expect(() => Semaphore.createExclusive(name, 0o600, 1)).toThrowErrnoError('semget', 'EEXIST');
     });
     it('create should open a semaphore that already exists', () => {
       expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
@@ -52,10 +52,10 @@ describe('Semaphore', () => {
     it('should unlink the semaphore if this is the last reference', () => {
       const semaphore = Semaphore.createExclusive(name, 0o600, 1);
       semaphore.close();
-      expect(() => semaphore.wait()).toThrow('EINVAL');
-      expect(() => semaphore.trywait()).toThrow('EINVAL');
-      expect(() => semaphore.post()).toThrow('EINVAL');
-      expect(() => semaphore.close()).toThrow('EINVAL');
+      expect(() => semaphore.wait()).toThrowErrnoError('semop', 'EINVAL');
+      expect(() => semaphore.trywait()).toThrowErrnoError('semop', 'EINVAL');
+      expect(() => semaphore.post()).toThrowErrnoError('semop', 'EINVAL');
+      expect(() => semaphore.close()).toThrowErrnoError('semop', 'EINVAL');
     });
     it('should not unlink the semaphore if this is not the last reference', () => {
       const semaphore = Semaphore.createExclusive(name, 0o600, 1);
@@ -136,7 +136,7 @@ describe('Semaphore', () => {
         });
       });
       semaphore.close();
-      expect(() => Semaphore.open(name)).toThrow('ENOENT');
+      expect(() => Semaphore.open(name)).toThrowErrnoError('semget', 'ENOENT');
     });
 
     describe('non blocking calls', () => {

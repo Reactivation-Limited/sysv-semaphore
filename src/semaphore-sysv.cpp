@@ -3,8 +3,7 @@
 #include <errnoname.h>
 #include <sys/errno.h>
 #include <sys/sem.h>
-
-#include <stdio.h>
+#include <system_error>
 
 #define OPERATION_COUNTER 0
 #define REF_COUNT 1
@@ -24,11 +23,11 @@ SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
       semun arg;
       arg.val = value;
       if (semctl(semid, OPERATION_COUNTER, SETVAL, arg) == -1) {
-        // might want to close the sem?
-        throw errnoname(errno);
+        throw std::system_error(errno, std::system_category(), "semctl");
       }
     } else if (errno == EEXIST) {
-      // open the existing sem. can fail if another process unlinked the sem before the second call to semget
+      // the next call to semget can fail if there is a race and another process/thread removed the semaphore
+      // if that happens, go around again and attempt to create it
       semid = semget(key, 0, 0);
       if (semid != -1) {
         struct sembuf op;
@@ -37,14 +36,14 @@ SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
         op.sem_flg = SEM_UNDO;
         while (semop(semid, &op, 1) == -1) {
           if (errno != EINTR) {
-            throw errnoname(errno);
+            throw std::system_error(errno, std::system_category(), "semop");
           }
         }
       } else if (errno != ENOENT) {
-        throw errnoname(errno);
+        throw std::system_error(errno, std::system_category(), "semget");
       }
     } else {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semget");
     }
   } while (semid == -1); // the sem got unlinked in a race
   return new SemaphoreV(key, semid);
@@ -63,10 +62,10 @@ SemaphoreV *SemaphoreV::createExclusive(const char *path, int mode, int value) {
       arg.val = value;
       if (semctl(semid, OPERATION_COUNTER, SETVAL, arg) == -1) {
         // might want to close the sem?
-        throw errnoname(errno);
+        throw std::system_error(errno, std::system_category(), "semctl");
       }
     } else {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semget");
     }
   } while (semid == -1);
   return new SemaphoreV(key, semid);
@@ -77,7 +76,7 @@ SemaphoreV *SemaphoreV::open(const char *path) {
 
   int semid = semget(key, SEMAPHORES, 0);
   if (semid == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "semget");
   }
   struct sembuf op;
   op.sem_num = REF_COUNT;
@@ -85,10 +84,9 @@ SemaphoreV *SemaphoreV::open(const char *path) {
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno != EINTR) {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semop");
     }
   }
-
   return new SemaphoreV(key, semid);
 }
 
@@ -98,10 +96,10 @@ void SemaphoreV::unlink(const char *path) {
 
   semid = semget(key, 1, 0);
   if (semid == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "semget");
   }
   if (semctl(semid, 0, IPC_RMID) == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "semctl");
   }
 }
 
@@ -110,7 +108,7 @@ int SemaphoreV::valueOf() {
   if (result != -1) {
     return result;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "semctl");
 }
 
 void SemaphoreV::wait() {
@@ -120,7 +118,7 @@ void SemaphoreV::wait() {
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno != EINTR) {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semop");
     }
   }
 }
@@ -135,7 +133,7 @@ bool SemaphoreV::trywait() {
       return false;
     }
     if (errno != EINTR) {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semop");
     }
   }
   return true;
@@ -148,7 +146,7 @@ void SemaphoreV::post() {
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno != EINTR) {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semop");
     }
   }
 }
@@ -161,12 +159,12 @@ void SemaphoreV::close() {
   while (semop(semid, &op, 1) == -1) {
     if (errno == EAGAIN) {
       if (semctl(semid, 0, IPC_RMID) == -1) {
-        throw errnoname(errno);
+        throw std::system_error(errno, std::system_category(), "semctl");
       } else {
         break;
       }
     } else if (errno != EINTR) {
-      throw errnoname(errno);
+      throw std::system_error(errno, std::system_category(), "semop");
     }
   }
   semid = -1;

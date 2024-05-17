@@ -19,7 +19,6 @@ describe('Flock', () => {
   });
 
   it('should throw informative Error objects when passed an invalid file descriptor', async () => {
-    expect(() => Flock.share(-1)).toThrow();
     expect(() => Flock.share(-1)).toThrowErrnoError('flock', 'EBADF');
     expect(() => Flock.exclusive(-1)).toThrowErrnoError('flock', 'EBADF');
     expect(() => Flock.shareNB(-1)).toThrowErrnoError('flock', 'EBADF');
