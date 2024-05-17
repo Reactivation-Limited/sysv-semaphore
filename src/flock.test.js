@@ -5,12 +5,26 @@ const childMessages = require('../test/parent.js');
 const debug = require('debug')('flock-test');
 
 describe('Flock', () => {
+  beforeAll(async () => {
+    try {
+      await mkdir('tmp');
+    } catch (error) {
+      if (error.code !== 'EEXIST') {
+        throw error;
+      }
+    }
+  });
   it('should be defined', () => {
     expect(Flock).not.toBe(undefined);
   });
 
-  it('should not lock non-files', async () => {
-    expect(() => Flock.share(-1)).toThrow('EBADF');
+  it('should throw informative Error objects when passed an invalid file descriptor', async () => {
+    expect(() => Flock.share(-1)).toThrow();
+    expect(() => Flock.share(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.exclusive(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.shareNB(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.exclusiveNB(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.unlock(-1)).toThrowErrnoError('flock', 'EBADF');
   });
 
   describe('locking', () => {
@@ -40,14 +54,6 @@ describe('Flock', () => {
     let F;
     let file;
     beforeAll(async () => {
-      try {
-        await mkdir('tmp');
-      } catch (error) {
-        if (error.code !== 'EEXIST') {
-          throw error;
-        }
-      }
-
       child = fork('./test/flock-child.js', ['child'], {
         stdio: [process.stdin, process.stdout, process.stderr, 'ipc'],
         env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG }

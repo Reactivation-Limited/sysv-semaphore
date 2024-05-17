@@ -1,4 +1,5 @@
 #include "flock.h"
+
 #include <errnoname.h>
 #include <sys/errno.h>
 #include <sys/file.h>
@@ -8,7 +9,7 @@ void Flock::share(int fd) {
   if (flock(fd, LOCK_SH) == 0) {
     return;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "flock");
 };
 
 bool Flock::shareNB(int fd) {
@@ -18,14 +19,14 @@ bool Flock::shareNB(int fd) {
   if (errno == EWOULDBLOCK) {
     return false;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "flock");
 };
 
 void Flock::exclusive(int fd) {
   if (flock(fd, LOCK_EX) == 0) {
     return;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "flock");
 };
 
 bool Flock::exclusiveNB(int fd) {
@@ -35,7 +36,7 @@ bool Flock::exclusiveNB(int fd) {
   if (errno == EWOULDBLOCK) {
     return false;
   }
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "flock");
 };
 
 void Flock::unlock(int fd) {

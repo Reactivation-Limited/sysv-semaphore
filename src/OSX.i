@@ -17,10 +17,10 @@
 %exception {
   try {
     $action
-   } catch(std::system_error e) {
+  } catch(std::system_error e) {
     throwJavaScriptException(e, info.Env());
   } catch(const char *e) {
-    // you could thow with NAPI?
+    // @todo migrate everything that throws const char * to std::system_error
     SWIG_exception(SWIG_SystemError, e);
   } catch(...) {
     SWIG_exception(SWIG_RuntimeError, "Unknown exception");
