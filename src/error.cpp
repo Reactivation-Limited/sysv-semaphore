@@ -12,7 +12,7 @@ void throwJavaScriptException(std::system_error &e, Napi::Env env) {
   message += ", ";
   message += syscall;
   Napi::Error jsError = Napi::Error::New(env, message);
-  jsError.Set("errno", Napi::Number::New(env, -code));
+  jsError.Set("errno", Napi::Number::New(env, code));
   jsError.Set("code", Napi::String::New(env, errnoname(code)));
   jsError.Set("syscall", Napi::String::New(env, syscall));
   jsError.ThrowAsJavaScriptException();
