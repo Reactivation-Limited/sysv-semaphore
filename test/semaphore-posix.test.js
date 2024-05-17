@@ -1,3 +1,4 @@
+const os = require('node:os');
 const { fork } = require('node:child_process');
 const childMessages = require('./parent.js');
 const { SemaphoreP } = require('../build/Release/OSX.node');
@@ -5,10 +6,6 @@ const { SemaphoreP } = require('../build/Release/OSX.node');
 const name = Buffer.from('semaphore-test').toString('base64');
 
 describe('SemaphoreP', () => {
-  afterAll(() => {
-    SemaphoreP.unlink(name);
-  });
-
   it('should throw if the semaphore does not exist', () => {
     expect(() => SemaphoreP.unlink(name)).toThrowErrnoError('sem_unlink', 'ENOENT');
   });
@@ -47,6 +44,9 @@ describe('SemaphoreP', () => {
         semaphore.close();
       }
     });
+    afterAll(() => {
+      expect(() => SemaphoreP.unlink(name)).not.toThrow();
+    });
 
     it('should throw if the semaphore does not exist', () => {
       expect(() => (semaphore = SemaphoreP.open(name))).toThrowErrnoError('sem_open', 'ENOENT');
@@ -60,10 +60,11 @@ describe('SemaphoreP', () => {
   describe('sempahore operations', () => {
     let semaphore;
     beforeAll(() => {
-      semaphore = SemaphoreP.open(name);
+      semaphore = SemaphoreP.createExclusive(name, 0o600, 1);
     });
     afterAll(() => {
       semaphore.close();
+      SemaphoreP.unlink(name);
     });
 
     it('should should decrement the semaphore without blocking', () => {
@@ -84,6 +85,37 @@ describe('SemaphoreP', () => {
 
     it('should increment the semaphore without blocking', () => {
       expect(() => semaphore.post()).not.toThrow();
+    });
+  });
+
+  describe('semphore operations when the semaphore is closed', () => {
+    let semaphore;
+    beforeAll(() => {
+      semaphore = SemaphoreP.createExclusive(name, 0o600, 1);
+      semaphore.close();
+    });
+    afterAll(() => {
+      SemaphoreP.unlink(name);
+    });
+
+    // contrary to the man page for sem_*, Darwin returns EBADF if the set_t * passed to sem_wait is nonsense
+    // https://github.com/apple-oss-distributions/xnu/blob/94d3b452840153a99b38a3a9659680b2a006908e/bsd/kern/posix_sem.c#L821
+    const BADSEMPTR = os.type() === 'Darwin' ? 'EBADF' : 'EINVAL';
+
+    it('wait should throw an errno error', () => {
+      expect(() => semaphore.wait()).toThrowErrnoError('sem_wait', BADSEMPTR);
+    });
+
+    it('post should throw an errno error', () => {
+      expect(() => semaphore.post()).toThrowErrnoError('sem_post', BADSEMPTR);
+    });
+
+    it('trywait should throw an errno error', () => {
+      expect(() => semaphore.trywait()).toThrowErrnoError('sem_trywait', BADSEMPTR);
+    });
+
+    it('close should throw an errno error', () => {
+      expect(() => semaphore.close()).toThrowErrnoError('sem_close', BADSEMPTR);
     });
   });
 
@@ -112,6 +144,7 @@ describe('SemaphoreP', () => {
       semaphore.close();
       child.kill();
       await new Promise((resolve) => child.once('close', resolve));
+      SemaphoreP.unlink(name);
     });
 
     describe('non blocking calls', () => {

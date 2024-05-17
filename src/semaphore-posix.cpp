@@ -73,10 +73,9 @@ void SemaphoreP::post() {
 }
 
 void SemaphoreP::close() {
-  if (s != SEM_FAILED && sem_close(s) == -1) {
+  if (sem_close(s) == -1) {
     throw std::system_error(errno, std::system_category(), "sem_close");
   }
-  s = SEM_FAILED;
 }
 
 void SemaphoreP::unlink(const char *name) {
