@@ -3,7 +3,7 @@
 #include <errnoname.h>
 #include <string>
 
-void throwJavaScriptException(std::system_error &e, Napi::Env env) {
+void throwJavaScriptError(std::system_error &e, Napi::Env env) {
   const int code = e.code().value();
   std::string what = e.what();
   std::string syscall = what.substr(0, what.find(':'));

@@ -18,7 +18,7 @@
   try {
     $action
   } catch(std::system_error e) {
-    throwJavaScriptException(e, info.Env());
+    throwJavaScriptError(e, info.Env());
     SWIG_fail;
   } catch(const char *e) {
     // @todo migrate everything that throws const char * to std::system_error
