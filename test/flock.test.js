@@ -1,7 +1,7 @@
 const { Flock } = require('../build/Release/OSX.node');
 const { mkdir, open, unlink } = require('node:fs/promises');
 const { fork } = require('node:child_process');
-const childMessages = require('../test/parent.js');
+const childMessages = require('./parent.js');
 const debug = require('debug')('flock-test');
 
 describe('Flock', () => {

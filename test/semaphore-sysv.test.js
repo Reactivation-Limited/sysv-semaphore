@@ -1,6 +1,6 @@
 const { fork } = require('node:child_process');
 const { open, unlink } = require('node:fs/promises');
-const childMessages = require('../test/parent.js');
+const childMessages = require('./parent.js');
 const { SemaphoreV: Semaphore } = require('../build/Release/OSX.node');
 
 const name = './tmp/semaphore-sysv';
