@@ -53,7 +53,7 @@ void SemaphoreP::wait() {
     r = sem_wait(s);
   } while (r == -1 && errno == EINTR);
   if (r != 0) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "sem_wait");
   }
 }
 
@@ -69,18 +69,18 @@ bool SemaphoreP::trywait() {
       return false;
     }
   } while (errno == EINTR);
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "sem_trywait");
 }
 
 void SemaphoreP::post() {
   if (sem_post(s) == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "sem_post");
   }
 }
 
 void SemaphoreP::close() {
   if (s != SEM_FAILED && sem_close(s) == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "sem_close");
   }
   s = SEM_FAILED;
 }
