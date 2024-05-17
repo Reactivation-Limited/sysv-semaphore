@@ -10,9 +10,9 @@ describe('SemaphoreP', () => {
     SemaphoreP.unlink(name);
   });
 
-  it('should thow if the semaphore does not exist', () => {
+  it('should throw if the semaphore does not exist', () => {
     expect(++orderMatters).toBe(0);
-    expect(() => SemaphoreP.unlink(name)).toThrow('ENOENT');
+    expect(() => SemaphoreP.unlink(name)).toThrowErrnoError('sem_unlink', 'ENOENT');
   });
 
   describe('creation and opening', () => {
@@ -28,7 +28,7 @@ describe('SemaphoreP', () => {
 
     it('should throw if a semaphore already exists', () => {
       expect(++orderMatters).toBe(2);
-      expect(() => SemaphoreP.createExclusive(name, 0o600, 1)).toThrow('EEXIST');
+      expect(() => SemaphoreP.createExclusive(name, 0o600, 1)).toThrowErrnoError('sem_open', 'EEXIST');
     });
 
     it('should open the semaphore if it exists', () => {
@@ -57,7 +57,7 @@ describe('SemaphoreP', () => {
 
     it('should throw if the semaphore does not exist', () => {
       expect(++orderMatters).toBe(6);
-      expect(() => (semaphore = SemaphoreP.open(name))).toThrow('ENOENT');
+      expect(() => (semaphore = SemaphoreP.open(name))).toThrowErrnoError('sem_open', 'ENOENT');
     });
 
     it('should create the semaphore if it does not exist', () => {

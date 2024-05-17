@@ -3,6 +3,7 @@
 #include <errnoname.h>
 #include <stddef.h>
 #include <sys/errno.h>
+#include <system_error>
 
 SemaphoreP::~SemaphoreP() {
   if (s != SEM_FAILED) {
@@ -18,7 +19,7 @@ SemaphoreP *SemaphoreP::open(const char *name) {
       return new SemaphoreP(s);
     }
   } while (errno == EINTR);
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "sem_open");
 }
 
 SemaphoreP *SemaphoreP::createP(const char *name, int oflags, int mode, unsigned int value) {
@@ -28,7 +29,7 @@ SemaphoreP *SemaphoreP::createP(const char *name, int oflags, int mode, unsigned
       return new SemaphoreP(s);
     }
   } while (errno == EINTR);
-  throw errnoname(errno);
+  throw std::system_error(errno, std::system_category(), "sem_open");
 }
 
 SemaphoreP *SemaphoreP::createExclusive(const char *name, int mode, unsigned int value)
@@ -89,6 +90,6 @@ void SemaphoreP::unlink(const char *name) {
     return;
   }
   if (sem_unlink(name) == -1) {
-    throw errnoname(errno);
+    throw std::system_error(errno, std::system_category(), "sem_unlink");
   }
 }
