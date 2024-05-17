@@ -3,7 +3,6 @@ const childMessages = require('./parent.js');
 const { SemaphoreP } = require('../build/Release/OSX.node');
 
 const name = Buffer.from('semaphore-test').toString('base64');
-let orderMatters = -1;
 
 describe('SemaphoreP', () => {
   afterAll(() => {
@@ -11,40 +10,34 @@ describe('SemaphoreP', () => {
   });
 
   it('should throw if the semaphore does not exist', () => {
-    expect(++orderMatters).toBe(0);
     expect(() => SemaphoreP.unlink(name)).toThrowErrnoError('sem_unlink', 'ENOENT');
   });
 
   describe('creation and opening', () => {
+    // order matters
     let semaphore;
     afterEach(() => {
       expect(() => semaphore.close()).not.toThrow();
     });
+    afterAll(() => {
+      expect(() => SemaphoreP.unlink(name)).not.toThrow();
+    });
 
     it('should create a semaphore', () => {
-      expect(++orderMatters).toBe(1);
       expect(() => (semaphore = SemaphoreP.createExclusive(name, 0o600, 1))).not.toThrow();
     });
 
     it('should throw if a semaphore already exists', () => {
-      expect(++orderMatters).toBe(2);
       expect(() => SemaphoreP.createExclusive(name, 0o600, 1)).toThrowErrnoError('sem_open', 'EEXIST');
     });
 
     it('should open the semaphore if it exists', () => {
-      expect(++orderMatters).toBe(3);
       expect(() => (semaphore = SemaphoreP.create(name, 0o600, 1))).not.toThrow();
     });
 
     it('should open a semaphore', () => {
-      expect(++orderMatters).toBe(4);
       expect(() => (semaphore = SemaphoreP.open(name))).not.toThrow();
     });
-  });
-
-  it('should unlink a semaphore', () => {
-    expect(++orderMatters).toBe(5);
-    expect(() => SemaphoreP.unlink(name)).not.toThrow();
   });
 
   describe('when the semaphore does not exist', () => {
@@ -56,12 +49,10 @@ describe('SemaphoreP', () => {
     });
 
     it('should throw if the semaphore does not exist', () => {
-      expect(++orderMatters).toBe(6);
       expect(() => (semaphore = SemaphoreP.open(name))).toThrowErrnoError('sem_open', 'ENOENT');
     });
 
     it('should create the semaphore if it does not exist', () => {
-      expect(++orderMatters).toBe(7);
       expect(() => (semaphore = SemaphoreP.create(name, 0o600, 1))).not.toThrow();
     });
   });
@@ -76,27 +67,22 @@ describe('SemaphoreP', () => {
     });
 
     it('should should decrement the semaphore without blocking', () => {
-      expect(++orderMatters).toBe(8);
       expect(() => semaphore.wait()).not.toThrow();
     });
 
     it('should increment the semaphore without blocking', () => {
-      expect(++orderMatters).toBe(9);
       expect(() => semaphore.post()).not.toThrow();
     });
 
     it('should should decrement the semaphore and return true without blocking', () => {
-      expect(++orderMatters).toBe(10);
       expect(semaphore.trywait()).toBe(true);
     });
 
     it('should not decrement the semaphore and return false without blocking', () => {
-      expect(++orderMatters).toBe(11);
       expect(semaphore.trywait()).toBe(false);
     });
 
     it('should increment the semaphore without blocking', () => {
-      expect(++orderMatters).toBe(12);
       expect(() => semaphore.post()).not.toThrow();
     });
   });
@@ -130,7 +116,6 @@ describe('SemaphoreP', () => {
 
     describe('non blocking calls', () => {
       it('trywait should return false when the parent has the semaphore', async () => {
-        expect(++orderMatters).toBe(13);
         expect(semaphore.trywait()).toBe(true);
         await expect(messages.next('trywait')).resolves.toEqual({
           value: 'not aquired count=0',
@@ -138,7 +123,6 @@ describe('SemaphoreP', () => {
         });
       });
       it('trywait should return true when the parent does not have the semaphore', async () => {
-        expect(++orderMatters).toBe(14);
         expect(() => semaphore.post()).not.toThrow();
         await expect(messages.next('trywait')).resolves.toEqual({
           value: 'aquired count=1',
@@ -148,7 +132,6 @@ describe('SemaphoreP', () => {
     });
     describe('blocking calls', () => {
       it('trywait should return true when the child does not have the semaphore', async () => {
-        expect(++orderMatters).toBe(15);
         await expect(messages.next('post')).resolves.toEqual({
           value: 'released count=0',
           done: false
@@ -156,7 +139,6 @@ describe('SemaphoreP', () => {
         expect(semaphore.trywait()).toBe(true);
       });
       it('wait should pause the child until the semaphore is released by the parent', async () => {
-        expect(++orderMatters).toBe(16);
         const start = performance.now();
         await expect(messages.next('wait')).resolves.toEqual({
           value: 'waiting',
@@ -170,13 +152,11 @@ describe('SemaphoreP', () => {
         expect(performance.now() - start).toBeGreaterThan(100);
       });
       it('trywait should return false when the child does have the semaphore', async () => {
-        expect(++orderMatters).toBe(17);
         const start = performance.now();
         expect(semaphore.trywait()).toBe(false);
         expect(performance.now() - start).toBeLessThan(100);
       });
       it('trywait should not pause the child until the semaphore is released by the parent', async () => {
-        expect(++orderMatters).toBe(18);
         const start = performance.now();
         await expect(messages.next('trywait')).resolves.toEqual({
           value: 'not aquired count=1',
