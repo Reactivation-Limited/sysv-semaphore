@@ -17,7 +17,7 @@
 %exception {
   try {
     $action
-  } catch(std::system_error e) {
+  } catch(std::system_error &e) {
     throwJavaScriptError(e, info.Env());
     SWIG_fail;
   } catch(const char *e) {
