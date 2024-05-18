@@ -92,9 +92,8 @@ SemaphoreV *SemaphoreV::open(const char *path) {
 
 void SemaphoreV::unlink(const char *path) {
   auto key = tok(path);
-  int semid;
 
-  semid = semget(key, 1, 0);
+  int semid = semget(key, SEMAPHORES, 0);
   if (semid == -1) {
     throw std::system_error(errno, std::system_category(), "semget");
   }
