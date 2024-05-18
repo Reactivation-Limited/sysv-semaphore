@@ -1,8 +1,4 @@
 {
-  "make_global_settings": [
-    ["CXX","/usr/bin/clang++"],
-    ["LINK","/usr/bin/clang++"],
-  ],
   "targets": [{
     "target_name": "OSX",
     "sources": [ "src/error.cpp", "src/token.cpp", "src/semaphore-sysv.cpp", "src/semaphore-posix.cpp", "src/flock.cpp", "src/OSX.cpp" ],
@@ -10,6 +6,8 @@
     "cflags_cc": ["-fexceptions", "-frtti", "-std=c++17", "-pthread" ],
     "conditions": [
       ["OS=='mac'", {
+        "CXX":"/usr/bin/clang++",
+        "LINK": "/usr/bin/clang++",
         "xcode_settings": {
           "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
           "GCC_ENABLE_CPP_RTTI": "YES",
