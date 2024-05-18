@@ -9,7 +9,6 @@ class SemaphoreP {
 
 public:
   ~SemaphoreP();
-  bool valueOf() { return s != SEM_FAILED; };
   void wait();
   bool trywait();
   void post();
