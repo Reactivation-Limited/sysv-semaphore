@@ -121,7 +121,8 @@ describe('SemaphoreP', () => {
     let messages;
     let child;
     beforeAll(async () => {
-      child = fork('./test/semaphore-posix-child.js', ['child'], {
+      semaphore = SemaphoreP.createExclusive(name, 0o600, 1);
+      child = fork('./test/semaphore-posix-child.js', [name], {
         stdio: [process.stdin, process.stdout, process.stderr, 'ipc'],
         env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG }
       });
@@ -130,17 +131,18 @@ describe('SemaphoreP', () => {
         child.kill('SIGINT');
       });
 
-      const name = Buffer.from('flock-child-' + child.pid).toString('base64');
-
       messages = childMessages(child);
       await expect(messages.next()).resolves.toEqual({ done: false, value: name });
-      semaphore = SemaphoreP.open(name);
     });
 
     afterAll(async () => {
+      child.kill('SIGKILL');
+      await new Promise((resolve) => {
+        child.once('exit', (code, signal) => {
+          code ? resolve(code) : resolve(signal);
+        });
+      });
       semaphore.close();
-      child.kill();
-      await new Promise((resolve) => child.once('close', resolve));
       SemaphoreP.unlink(name);
     });
 

@@ -2,14 +2,13 @@ const { SemaphoreP } = require('../build/Release/OSX.node');
 
 const debug = require('debug')('semaphore-child-process');
 
-// the child always decides on the file
-const name = Buffer.from('flock-child-' + process.pid).toString('base64');
+const name = process.argv[2];
 
 const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = SemaphoreP.createExclusive(name, 0o600, 1);
+let semaphore = SemaphoreP.open(name);
 let count = 0;
 
 const commands = {
@@ -54,7 +53,6 @@ send(name);
 
 const exit = (code) => {
   semaphore.close();
-  SemaphoreP.unlink(name);
   process.exit(code);
 };
 
