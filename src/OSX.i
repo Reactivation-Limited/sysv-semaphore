@@ -20,9 +20,6 @@
   } catch(std::system_error &e) {
     throwJavaScriptError(e, info.Env());
     SWIG_fail;
-  } catch(const char *e) {
-    // @todo migrate everything that throws const char * to std::system_error
-    SWIG_exception(SWIG_SystemError, e);
   } catch(...) {
     SWIG_exception(SWIG_RuntimeError, "Unknown exception");
   }
