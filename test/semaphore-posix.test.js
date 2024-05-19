@@ -20,11 +20,8 @@ describe('SemaphoreP', () => {
       expect(() => SemaphoreP.unlink(name)).not.toThrow();
     });
 
-    it('should create a semaphore', () => {
+    it('should create a semaphore, or throw if it already exists', () => {
       expect(() => (semaphore = SemaphoreP.createExclusive(name, 0o600, 1))).not.toThrow();
-    });
-
-    it('should throw if a semaphore already exists', () => {
       expect(() => SemaphoreP.createExclusive(name, 0o600, 1)).toThrowErrnoError('sem_open', 'EEXIST');
     });
 
