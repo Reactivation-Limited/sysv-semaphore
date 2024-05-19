@@ -1,7 +1,7 @@
 #include "flock.h"
 
+#include <cerrno>
 #include <errnoname.h>
-#include <sys/errno.h>
 #include <sys/file.h>
 #include <system_error>
 

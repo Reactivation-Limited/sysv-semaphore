@@ -1,8 +1,8 @@
 #include "semaphore-posix.h"
 
+#include <cerrno>
+#include <cstddef>
 #include <errnoname.h>
-#include <stddef.h>
-#include <sys/errno.h>
 #include <system_error>
 
 SemaphoreP::~SemaphoreP() {
