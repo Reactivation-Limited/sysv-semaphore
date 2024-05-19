@@ -34,7 +34,7 @@ module.exports = [
     }
   },
   {
-    files: ['**/*.test.js', 'jest-matchers.js', 'test/**/*.js'],
+    files: ['**/*.test.js', 'jest-setup.js', 'test/**/*.js'],
     plugins: {
       jest: jest
     },
