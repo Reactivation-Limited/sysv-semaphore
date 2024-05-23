@@ -9,6 +9,13 @@
 #define REF_COUNT 1
 #define SEMAPHORES 2
 
+// @todo passing 0 as the second arg to ftok is "undefined behaviour"
+// so I have some choices:
+//  hard code something and avoid complicating the interface
+//  expose some "set project id" function to override if needed
+//  add the int to the create* and open calls
+// @todo worse: ftok can fail, and I'm not handling that. OS X does not care it seems if the file exists or not, other
+// systems do
 auto tok(const char *path) { return ftok(path, 0); }
 
 SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
