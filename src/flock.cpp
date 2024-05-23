@@ -11,7 +11,7 @@ void Flock::share(int fd) {
   throw std::system_error(errno, std::system_category(), "flock");
 };
 
-bool Flock::shareNB(int fd) {
+bool Flock::tryShare(int fd) {
   if (flock(fd, LOCK_SH | LOCK_NB) == 0) {
     return true;
   }
@@ -28,7 +28,7 @@ void Flock::exclusive(int fd) {
   throw std::system_error(errno, std::system_category(), "flock");
 };
 
-bool Flock::exclusiveNB(int fd) {
+bool Flock::tryExclusive(int fd) {
   if (flock(fd, LOCK_EX | LOCK_NB) == 0) {
     return true;
   }
