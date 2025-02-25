@@ -1,19 +1,22 @@
+#include "token.h"
+#include <sys/ipc.h>
+
 class SemaphoreV {
-  int key;
   int semid;
 
-  SemaphoreV(int key, int s) : key(key), semid(s){};
+  SemaphoreV(int s) : semid(s){};
 
 public:
-  static SemaphoreV *createExclusive(const char *path, int mode, int value);
-  static SemaphoreV *create(const char *path, int mode, int value);
-  static SemaphoreV *open(const char *path);
-  static void unlink(const char *path);
+  static SemaphoreV *createExclusive(Token &key, int mode, int value);
+  static SemaphoreV *create(Token &key, int mode, int value);
+  static SemaphoreV *open(Token &key);
+  static void unlink(Token &key);
 
   ~SemaphoreV();
   void wait();
   bool trywait();
   void post();
+  void op(int value);
   int valueOf();
   void close();
 };

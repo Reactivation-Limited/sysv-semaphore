@@ -1,7 +1,7 @@
 #include "semaphore-sysv.h"
 
 #include <cerrno>
-#include <errnoname.h>
+// #include <errnoname.h>
 #include <sys/sem.h>
 #include <system_error>
 
@@ -9,22 +9,12 @@
 #define REF_COUNT 1
 #define SEMAPHORES 2
 
-// @todo passing 0 as the second arg to ftok is "undefined behaviour"
-// so I have some choices:
-//  hard code something and avoid complicating the interface
-//  expose some "set project id" function to override if needed
-//  add the int to the create* and open calls
-// @todo worse: ftok can fail, and I'm not handling that. OS X does not care it seems if the file exists or not, other
-// systems do
-auto tok(const char *path) { return ftok(path, 0); }
-
-SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
-  auto key = tok(path);
+SemaphoreV *SemaphoreV::create(Token &key, int mode, int value) {
   int semid;
 
   mode &= 0x1FF;
   do {
-    semid = semget(key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
+    semid = semget(*key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
     if (semid != -1) {
       // set the initial value
       semun arg;
@@ -35,7 +25,7 @@ SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
     } else if (errno == EEXIST) {
       // the next call to semget can fail if there is a race and another process/thread removed the semaphore
       // if that happens, go around again and attempt to create it
-      semid = semget(key, 0, 0);
+      semid = semget(*key, 0, 0);
       if (semid != -1) {
         struct sembuf op;
         op.sem_num = REF_COUNT;
@@ -53,16 +43,15 @@ SemaphoreV *SemaphoreV::create(const char *path, int mode, int value) {
       throw std::system_error(errno, std::system_category(), "semget");
     }
   } while (semid == -1); // the sem got unlinked in a race
-  return new SemaphoreV(key, semid);
+  return new SemaphoreV(semid);
 }
 
-SemaphoreV *SemaphoreV::createExclusive(const char *path, int mode, int value) {
-  auto key = tok(path);
+SemaphoreV *SemaphoreV::createExclusive(Token &key, int mode, int value) {
   int semid;
 
   mode &= 0x1FF;
   do {
-    semid = semget(key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
+    semid = semget(*key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
     if (semid != -1) {
       // set the initial value
       semun arg;
@@ -75,13 +64,11 @@ SemaphoreV *SemaphoreV::createExclusive(const char *path, int mode, int value) {
       throw std::system_error(errno, std::system_category(), "semget");
     }
   } while (semid == -1);
-  return new SemaphoreV(key, semid);
+  return new SemaphoreV(semid);
 }
 
-SemaphoreV *SemaphoreV::open(const char *path) {
-  auto key = tok(path);
-
-  int semid = semget(key, SEMAPHORES, 0);
+SemaphoreV *SemaphoreV::open(Token &key) {
+  int semid = semget(*key, SEMAPHORES, 0);
   if (semid == -1) {
     throw std::system_error(errno, std::system_category(), "semget");
   }
@@ -94,13 +81,11 @@ SemaphoreV *SemaphoreV::open(const char *path) {
       throw std::system_error(errno, std::system_category(), "semop");
     }
   }
-  return new SemaphoreV(key, semid);
+  return new SemaphoreV(semid);
 }
 
-void SemaphoreV::unlink(const char *path) {
-  auto key = tok(path);
-
-  int semid = semget(key, SEMAPHORES, 0);
+void SemaphoreV::unlink(Token &key) {
+  int semid = semget(*key, SEMAPHORES, 0);
   if (semid == -1) {
     throw std::system_error(errno, std::system_category(), "semget");
   }
@@ -149,6 +134,18 @@ void SemaphoreV::post() {
   struct sembuf op;
   op.sem_num = OPERATION_COUNTER;
   op.sem_op = 1;
+  op.sem_flg = SEM_UNDO;
+  while (semop(semid, &op, 1) == -1) {
+    if (errno != EINTR) {
+      throw std::system_error(errno, std::system_category(), "semop");
+    }
+  }
+}
+
+void SemaphoreV::op(int value) {
+  struct sembuf op;
+  op.sem_num = OPERATION_COUNTER;
+  op.sem_op = value;
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno != EINTR) {

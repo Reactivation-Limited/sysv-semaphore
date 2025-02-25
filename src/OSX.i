@@ -25,6 +25,7 @@
   }
 }
 
+%include "token.h"
 %include "semaphore-posix.h"
 %include "semaphore-sysv.h"
 %nodefaultctor Flock;

@@ -1,4 +1,4 @@
-const { SemaphoreV: Semaphore } = require('../build/Release/OSX.node');
+const { SemaphoreV: Semaphore, Token } = require('../build/Release/OSX.node');
 
 const debug = require('debug')('semaphore-sysv-child-process');
 
@@ -8,7 +8,8 @@ const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = Semaphore.open(name);
+const key = new Token(name, 0);
+let semaphore = Semaphore.open(key);
 let count = 0;
 
 const commands = {
