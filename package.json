@@ -11,6 +11,7 @@
     "swig": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i",
     "build-darwin": "prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
     "build-linux": "bash ./scripts/build-linux.sh",
+    "build": "npm run swig && npm run build-darwin && npm run build-linux",
     "install": "node-gyp-build",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
     "lint": "eslint src"
