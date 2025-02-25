@@ -1,7 +1,6 @@
 #include "semaphore-sysv.h"
 
 #include <cerrno>
-// #include <errnoname.h>
 #include <sys/sem.h>
 #include <system_error>
 
