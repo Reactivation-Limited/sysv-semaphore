@@ -1,7 +1,7 @@
 const { unlinkSync } = require('node:fs');
 const { openSync, closeSync } = require('node:fs');
 
-const { Flock } = require('../build/Release/OSX.node');
+const { Flock } = require('..');
 
 const debug = require('debug')('flock-child-process');
 

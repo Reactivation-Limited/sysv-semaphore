@@ -1,7 +1,7 @@
 // const os = require('node:os');
 const { fork } = require('node:child_process');
 const childMessages = require('./parent.js');
-const { SemaphoreP } = require('../build/Release/OSX.node');
+const { SemaphoreP } = require('..');
 
 const name = Buffer.from('semaphore-test').toString('base64');
 

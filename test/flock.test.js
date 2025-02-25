@@ -1,4 +1,4 @@
-const { Flock } = require('../build/Release/OSX.node');
+const { Flock } = require('..');
 const { mkdir, open, unlink } = require('node:fs/promises');
 const { fork } = require('node:child_process');
 const childMessages = require('./parent.js');

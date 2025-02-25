@@ -8,7 +8,8 @@
     "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false",
     "build:debug": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && node-gyp rebuild --debug",
     "prepare": "husky",
-    "install": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && node-gyp rebuild",
+    "build": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
+    "install": "node-gyp-build",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
     "lint": "eslint src"
   },
@@ -17,7 +18,7 @@
     "colors": "1.4.0",
     "debug": "4.3.4",
     "node-addon-api": "*",
-    "node-gyp": "10.1.0"
+    "node-gyp-build": "4.8.4"
   },
   "author": "",
   "license": "UNLICENSED",
@@ -30,6 +31,8 @@
     "husky": "9.0.11",
     "jest": "29.7.0",
     "lint-staged": "15.2.2",
+    "node-gyp": "11.1.0",
+    "prebuildify": "6.0.1",
     "prettier": "3.2.5"
   },
   "lint-staged": {
