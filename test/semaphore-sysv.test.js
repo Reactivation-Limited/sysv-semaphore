@@ -1,14 +1,17 @@
 const { fork } = require('node:child_process');
 const { open, unlink } = require('node:fs/promises');
 const childMessages = require('./parent.js');
-const { SemaphoreV: Semaphore } = require('../build/Release/OSX.node');
+const { SemaphoreV: Semaphore, Token } = require('../build/Release/OSX.node');
 
 const name = './tmp/semaphore-sysv';
 
 describe('Semaphore', () => {
+  let key;
+
   beforeAll(async () => {
     const F = await open(name, 'wx');
     F.close();
+    key = new Token(name, 0);
   });
   afterAll(async () => {
     await unlink(name);
@@ -17,40 +20,40 @@ describe('Semaphore', () => {
   describe('open, create and unlink', () => {
     // order matters
     afterAll(() => {
-      expect(() => Semaphore.unlink(name)).not.toThrow();
+      expect(() => Semaphore.unlink(key)).not.toThrow();
     });
     it('unlink should throw if the semaphore does not exist', () => {
-      expect(() => Semaphore.unlink(name)).toThrowErrnoError('semget', 'ENOENT');
+      expect(() => Semaphore.unlink(key)).toThrowErrnoError('semget', 'ENOENT');
     });
     it('open should also throw if the semaphore does not exist', () => {
-      expect(() => Semaphore.open(name)).toThrowErrnoError('semget', 'ENOENT');
+      expect(() => Semaphore.open(key)).toThrowErrnoError('semget', 'ENOENT');
     });
     it('create should create a semaphore if it does not exist', () => {
-      expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
+      expect(() => Semaphore.create(key, 0o600, 1)).not.toThrow();
     });
     it('createExclusive should throw if the semaphore already exists', () => {
-      expect(() => Semaphore.createExclusive(name, 0o600, 1)).toThrowErrnoError('semget', 'EEXIST');
+      expect(() => Semaphore.createExclusive(key, 0o600, 1)).toThrowErrnoError('semget', 'EEXIST');
     });
     it('create should open a semaphore that already exists', () => {
-      expect(() => Semaphore.create(name, 0o600, 1)).not.toThrow();
+      expect(() => Semaphore.create(key, 0o600, 1)).not.toThrow();
     });
     it('open should open a semaphore that already exists', () => {
-      expect(() => Semaphore.open(name)).not.toThrow();
+      expect(() => Semaphore.open(key)).not.toThrow();
     });
     it('unlink should not throw if the semaphore exists', () => {
-      expect(() => Semaphore.unlink(name)).not.toThrow();
+      expect(() => Semaphore.unlink(key)).not.toThrow();
     });
     it('createExclusive should create a semaphore if it does not already exist', () => {
-      expect(() => Semaphore.createExclusive(name, 0o600, 1)).not.toThrow();
+      expect(() => Semaphore.createExclusive(key, 0o600, 1)).not.toThrow();
     });
   });
 
   describe('close', () => {
     afterAll(() => {
-      expect(() => Semaphore.unlink(name)).toThrow('ENOENT');
+      expect(() => Semaphore.unlink(key)).toThrow('ENOENT');
     });
     it('should unlink the semaphore if this is the last reference', () => {
-      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
+      const semaphore = Semaphore.createExclusive(key, 0o600, 1);
       semaphore.close();
       expect(() => semaphore.wait()).toThrowErrnoError('semop', 'EINVAL');
       expect(() => semaphore.trywait()).toThrowErrnoError('semop', 'EINVAL');
@@ -58,26 +61,26 @@ describe('Semaphore', () => {
       expect(() => semaphore.close()).toThrowErrnoError('semop', 'EINVAL');
     });
     it('should not unlink the semaphore if this is not the last reference', () => {
-      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
-      Semaphore.create(name, 0o600, 1);
+      const semaphore = Semaphore.createExclusive(key, 0o600, 1);
+      Semaphore.create(key, 0o600, 1);
       semaphore.close();
-      expect(() => Semaphore.unlink(name)).not.toThrow();
+      expect(() => Semaphore.unlink(key)).not.toThrow();
     });
     it('should not unlink the semaphore if this is not the last reference', () => {
-      const semaphore = Semaphore.createExclusive(name, 0o600, 1);
-      Semaphore.open(name);
+      const semaphore = Semaphore.createExclusive(key, 0o600, 1);
+      Semaphore.open(key);
       semaphore.close();
-      expect(() => Semaphore.unlink(name)).not.toThrow();
+      expect(() => Semaphore.unlink(key)).not.toThrow();
     });
   });
 
   describe('sempahore operations', () => {
     let semaphore;
     beforeAll(() => {
-      semaphore = Semaphore.createExclusive(name, 0o600, 1);
+      semaphore = Semaphore.createExclusive(key, 0o600, 1);
     });
     afterAll(() => {
-      Semaphore.unlink(name);
+      Semaphore.unlink(key);
     });
 
     it('should have the initial value', () => {
@@ -116,8 +119,8 @@ describe('Semaphore', () => {
     let messages;
     let child;
     beforeAll(async () => {
-      semaphore = Semaphore.createExclusive(name, 0o600, 1);
-      child = fork('./test/semaphore-sysv-child.js', ['child'], {
+      semaphore = Semaphore.createExclusive(key, 0o600, 1);
+      child = fork('./test/semaphore-sysv-child.js', [name], {
         stdio: [process.stdin, process.stdout, process.stderr, 'ipc'],
         env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG }
       });
@@ -136,7 +139,6 @@ describe('Semaphore', () => {
         });
       });
       semaphore.close();
-      expect(() => Semaphore.open(name)).toThrowErrnoError('semget', 'ENOENT');
     });
 
     describe('non blocking calls', () => {
@@ -191,5 +193,11 @@ describe('Semaphore', () => {
         semaphore.post();
       });
     });
+  });
+
+  // Note that there is a corner case when the last process crashes and cannot unlink the sem
+  // this is a minor resource leak, and will be corrected when the the next group of processes runs
+  it('should have automatically removed the semaphore when the last process closed it', () => {
+    expect(() => Semaphore.open(key)).toThrowErrnoError('semget', 'ENOENT');
   });
 });

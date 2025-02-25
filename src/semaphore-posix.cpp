@@ -2,7 +2,6 @@
 
 #include <cerrno>
 #include <cstddef>
-#include <errnoname.h>
 #include <system_error>
 
 SemaphoreP::~SemaphoreP() {

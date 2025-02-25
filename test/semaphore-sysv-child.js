@@ -1,15 +1,15 @@
-const { SemaphoreV: Semaphore } = require('../build/Release/OSX.node');
+const { SemaphoreV: Semaphore, Token } = require('../build/Release/OSX.node');
 
 const debug = require('debug')('semaphore-sysv-child-process');
 
-// the child always decides on the file
-const name = './tmp/semaphore-sysv';
+const name = process.argv[2];
 
 const send = (...args) => {
   debug('child tx', ...args);
   process.send(...args);
 };
-let semaphore = Semaphore.open(name);
+const key = new Token(name, 0);
+let semaphore = Semaphore.open(key);
 let count = 0;
 
 const commands = {
@@ -53,7 +53,7 @@ process.on('message', (message) => {
 send(name);
 
 const exit = (code) => {
-  Semaphore.unlink(name);
+  semaphore.close();
   process.exit(code);
 };
 

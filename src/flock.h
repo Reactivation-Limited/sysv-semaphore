@@ -1,6 +1,3 @@
-#include "errnoname.h"
-#include <cerrno>
-
 class Flock {
 public:
   static void share(int fd);
