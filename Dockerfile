@@ -20,11 +20,10 @@ RUN ./configure
 RUN make
 RUN make install
 
-ADD . /root/project
 WORKDIR /root/project
 
 RUN npm cache clean -f
 RUN npm install -g n
 RUN n stable
-RUN npm ci
-RUN npm test
+
+CMD . scripts/prebuild-linux.sh

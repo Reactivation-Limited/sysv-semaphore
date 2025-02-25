@@ -6,3 +6,4 @@ node
 OSX.cpp
 *.spike.js
 /build
+/prebuilds/

@@ -8,7 +8,9 @@
     "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false",
     "build:debug": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && node-gyp rebuild --debug",
     "prepare": "husky",
-    "build": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i && prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
+    "swig": "swig -c++ -o src/OSX.cpp -javascript -napi src/OSX.i",
+    "build-darwin": "prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
+    "build-linux": "bash ./scripts/build-linux.sh",
     "install": "node-gyp-build",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
     "lint": "eslint src"
