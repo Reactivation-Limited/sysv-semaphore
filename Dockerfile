@@ -13,9 +13,10 @@ WORKDIR /root
 # required for -napi swig target
 RUN git clone https://salsa.debian.org/debian/swig.git --depth 1
 # fetch swig build deps
-RUN apt-get install -y bison libpcre2-dev
+RUN apt-get install -y automake libtool bison libpcre2-dev
 
 WORKDIR /root/swig
+RUN ./autogen.sh
 RUN ./configure
 RUN make
 RUN make install
