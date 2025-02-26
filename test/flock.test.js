@@ -21,8 +21,8 @@ describe('Flock', () => {
   it('should throw informative Error objects when passed an invalid file descriptor', async () => {
     expect(() => Flock.share(-1)).toThrowErrnoError('flock', 'EBADF');
     expect(() => Flock.exclusive(-1)).toThrowErrnoError('flock', 'EBADF');
-    expect(() => Flock.shareNB(-1)).toThrowErrnoError('flock', 'EBADF');
-    expect(() => Flock.exclusiveNB(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.tryShare(-1)).toThrowErrnoError('flock', 'EBADF');
+    expect(() => Flock.tryExclusive(-1)).toThrowErrnoError('flock', 'EBADF');
     expect(() => Flock.unlock(-1)).toThrowErrnoError('flock', 'EBADF');
   });
 
@@ -192,7 +192,7 @@ describe('Flock', () => {
           it('should not block and return true when another process does not have an exclusive lock', async () => {
             const start = performance.now();
 
-            expect(Flock.exclusiveNB(F.fd)).toBe(true);
+            expect(Flock.tryExclusive(F.fd)).toBe(true);
             expect(performance.now() - start).toBeLessThan(100);
           });
 
@@ -207,7 +207,7 @@ describe('Flock', () => {
 
             const unlocked = messages.next('unlock-later');
 
-            expect(Flock.exclusiveNB(F.fd)).toBe(false);
+            expect(Flock.tryExclusive(F.fd)).toBe(false);
             expect(performance.now() - start).toBeLessThan(100);
 
             await expect(unlocked).resolves.toEqual({
@@ -227,7 +227,7 @@ describe('Flock', () => {
 
             const unlocked = messages.next('unlock-later');
 
-            expect(Flock.exclusiveNB(F.fd)).toBe(false);
+            expect(Flock.tryExclusive(F.fd)).toBe(false);
             expect(performance.now() - start).toBeLessThan(100);
 
             await expect(unlocked).resolves.toEqual({
@@ -242,7 +242,7 @@ describe('Flock', () => {
             const start = performance.now();
             const unlocked = messages.next('unlock-later');
 
-            expect(Flock.shareNB(F.fd)).toBe(true);
+            expect(Flock.tryShare(F.fd)).toBe(true);
             expect(performance.now() - start).toBeLessThan(100);
 
             await expect(unlocked).resolves.toEqual({
@@ -260,7 +260,7 @@ describe('Flock', () => {
               done: false
             });
 
-            expect(Flock.shareNB(F.fd)).toBe(true);
+            expect(Flock.tryShare(F.fd)).toBe(true);
             expect(performance.now() - start).toBeLessThan(100);
 
             const unlocked = messages.next('unlock');
@@ -278,7 +278,7 @@ describe('Flock', () => {
               done: false
             });
 
-            expect(Flock.shareNB(F.fd)).toBe(false);
+            expect(Flock.tryShare(F.fd)).toBe(false);
             expect(performance.now() - start).toBeLessThan(100);
           });
         });
