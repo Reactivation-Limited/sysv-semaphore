@@ -1,4 +1,4 @@
-const { SemaphoreV: Semaphore, Token } = require('../build/Release/OSX.node');
+const { SemaphoreV: Semaphore, Token } = require('..');
 
 const debug = require('debug')('semaphore-sysv-child-process');
 

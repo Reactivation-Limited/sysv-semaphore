@@ -1,4 +1,4 @@
-const { SemaphoreP } = require('../build/Release/OSX.node');
+const { SemaphoreP } = require('..');
 
 const debug = require('debug')('semaphore-child-process');
 
