@@ -5,8 +5,12 @@ const { Flock } = require('..');
 
 const debug = require('debug')('flock-child-process');
 
+debug('env is', process.env);
+
 // the child always decides on the file
-const path = './tmp/test-flock-child-' + process.pid;
+// get TMP dir from env as flock does not work on file systems mounted using docker binds
+const path = `${process.env.TMP ?? './tmp'}/test-flock-child-${process.pid}`;
+debug('file path for locking is', path);
 const F = openSync(path, 'wx+');
 
 const send = (...args) => {

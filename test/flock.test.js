@@ -55,7 +55,7 @@ describe('Flock', () => {
     beforeAll(async () => {
       child = fork('./test/flock-child.js', ['child'], {
         stdio: [process.stdin, process.stdout, process.stderr, 'ipc'],
-        env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG }
+        env: { DEBUG_COLORS: '', DEBUG: process.env.DEBUG, TMP: process.env.TMP }
       });
 
       process.on('SIGINT', () => {
