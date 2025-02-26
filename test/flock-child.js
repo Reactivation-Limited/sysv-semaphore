@@ -10,28 +10,27 @@ const path = './tmp/test-flock-child-' + process.pid;
 const F = openSync(path, 'wx+');
 
 const send = (...args) => {
-  debug('child tx', ...args);
+  debug('child state is', ...args);
   process.send(...args);
 };
-
-let state = 'unlocked';
 
 const commands = {
   echo: (message) => message,
   share: () => {
     Flock.share(F);
-    state = 'share';
     send('share');
   },
   exclusive: () => {
     Flock.exclusive(F);
-    state = 'exclusive';
     send('exclusive');
   },
-  'unlock-later': () => setTimeout(commands.unlock, 100),
+  'unlock-later': () => {
+    debug('unlock in 100ms');
+    setTimeout(commands.unlock, 100);
+  },
   unlock: () => {
     Flock.unlock(F);
-    state = 'share';
+    debug('unlocked');
     send('unlock');
   }
 };
@@ -45,7 +44,6 @@ process.on('message', (message) => {
       throw `no command ${message}`;
     }
     command();
-    debug('child', state);
   } catch (whatever) {
     send(whatever);
   }

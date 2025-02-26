@@ -9,19 +9,19 @@ module.exports = async function* generator(child) {
     child.kill('SIGINT');
   });
 
-  debug('g begin');
+  debug('generator begin');
 
   try {
     child.on('message', (message) => {
       try {
         if (waiting) {
-          debug('g rx', message);
+          debug('rx', message);
           resolve(message);
         } else {
           throw 'unexpected message' + JSON.stringify(message);
         }
       } catch (whatever) {
-        debug('g throw');
+        debug('generator throw');
         if (waiting) {
           reject(whatever);
         }
@@ -33,15 +33,14 @@ module.exports = async function* generator(child) {
 
     for (;;) {
       waiting = new Promise((res, rej) => ((resolve = res), (reject = rej)));
-      debug('g yield');
       const command = yield waiting;
-      debug('g command', command);
+      debug('generator waiting for result from', command);
       if (command) {
         child.send(command);
       }
     }
   } finally {
-    debug('g finally');
+    debug('generator finally');
     child.kill('SIGINT');
   }
 };
