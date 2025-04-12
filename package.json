@@ -1,6 +1,6 @@
 {
   "name": "OSiX",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Provides access the IPC system calls on unix based platforms",
   "main": "index.js",
   "scripts": {
@@ -23,8 +23,8 @@
     "node-addon-api": "*",
     "node-gyp-build": "4.8.4"
   },
-  "author": "",
-  "license": "UNLICENSED",
+  "author": "Jon Cooke, Reactivation Limited",
+  "license": "ISC",
   "gypfile": true,
   "devDependencies": {
     "@eslint/js": "9.2.0",
