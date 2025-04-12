@@ -77,29 +77,53 @@ describe('Semaphore', () => {
   describe('sempahore operations', () => {
     let semaphore;
     beforeAll(() => {
-      semaphore = Semaphore.createExclusive(key, 0o600, 1);
+      semaphore = Semaphore.createExclusive(key, 0o600, 10);
     });
     afterAll(() => {
       Semaphore.unlink(key);
     });
 
-    it('should have the initial value', () => {
-      expect(semaphore.valueOf()).toBe(1);
+    it('should have the initial value of 10', () => {
+      expect(semaphore.valueOf()).toBe(10);
     });
 
     // order matters
+    it('should should throw if the wait argument is negative', () => {
+      expect(() => semaphore.wait(-1)).toThrow('Illegal arguments for function wait.');
+    });
+
+    it('should should subtract 9 from the semaphore without blocking', () => {
+      expect(() => semaphore.wait(9)).not.toThrow();
+      expect(semaphore.valueOf()).toBe(1);
+    });
+
     it('should should decrement the semaphore without blocking', () => {
       expect(() => semaphore.wait()).not.toThrow();
       expect(semaphore.valueOf()).toBe(0);
     });
 
-    it('should increment the semaphore without blocking', () => {
+    it('should increment the semaphore', () => {
       expect(() => semaphore.post()).not.toThrow();
       expect(semaphore.valueOf()).toBe(1);
     });
 
+    it('should add 9 to the semaphore', () => {
+      expect(() => semaphore.post(9)).not.toThrow();
+      expect(semaphore.valueOf()).toBe(10);
+    });
+
     it('should should decrement the semaphore and return true without blocking', () => {
       expect(semaphore.trywait()).toBe(true);
+      expect(semaphore.valueOf()).toBe(9);
+    });
+
+    it('should not subtract 10 from the semaphore and return false without blocking', () => {
+      expect(semaphore.trywait(10)).toBe(false);
+      expect(semaphore.valueOf()).toBe(9);
+    });
+
+    it('should subtract 9 from the semaphore and return true without blocking', () => {
+      expect(semaphore.trywait(9)).toBe(true);
       expect(semaphore.valueOf()).toBe(0);
     });
 
@@ -111,6 +135,11 @@ describe('Semaphore', () => {
     it('should increment the semaphore without blocking', () => {
       expect(() => semaphore.post()).not.toThrow();
       expect(semaphore.valueOf()).toBe(1);
+    });
+
+    it('should add 10 to the semaphore without blocking', () => {
+      expect(() => semaphore.post(10)).not.toThrow();
+      expect(semaphore.valueOf()).toBe(11);
     });
   });
 

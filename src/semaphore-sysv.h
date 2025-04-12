@@ -14,9 +14,12 @@ public:
 
   ~SemaphoreV();
   void wait();
+  void wait(unsigned value);
   bool trywait();
+  bool trywait(unsigned value);
   void post();
-  void op(int value);
-  int valueOf();
+  void post(unsigned value);
+  unsigned valueOf();
+  unsigned refs();
   void close();
 };

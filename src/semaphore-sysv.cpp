@@ -22,6 +22,7 @@ SemaphoreV *SemaphoreV::create(Token &key, int mode, int value) {
 
   mode &= 0x1FF;
   do {
+    // use IPC_CREAT to determine if the initial value should be set
     semid = semget(*key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
     if (semid != -1) {
       // set the initial value
@@ -30,7 +31,10 @@ SemaphoreV *SemaphoreV::create(Token &key, int mode, int value) {
       if (semctl(semid, OPERATION_COUNTER, SETVAL, arg) == -1) {
         throw std::system_error(errno, std::system_category(), "semctl");
       }
-    } else if (errno == EEXIST) {
+      return new SemaphoreV(semid);
+    } else if (errno != EEXIST) {
+      throw std::system_error(errno, std::system_category(), "semget");
+    } else {
       // the next call to semget can fail if there is a race and another process/thread removed the semaphore
       // if that happens, go around again and attempt to create it
       semid = semget(*key, 0, 0);
@@ -44,13 +48,14 @@ SemaphoreV *SemaphoreV::create(Token &key, int mode, int value) {
             throw std::system_error(errno, std::system_category(), "semop");
           }
         }
-      } else if (errno != ENOENT) {
+        return new SemaphoreV(semid);
+      } else if (errno == ENOENT) {
+        continue;
+      } else {
         throw std::system_error(errno, std::system_category(), "semget");
       }
-    } else {
-      throw std::system_error(errno, std::system_category(), "semget");
     }
-  } while (semid == -1); // the sem got unlinked in a race
+  } while (true); // a race is possible with another process, so loop until one of the semget calls works
   return new SemaphoreV(semid);
 }
 
@@ -71,6 +76,7 @@ SemaphoreV *SemaphoreV::createExclusive(Token &key, int mode, int value) {
     } else {
       throw std::system_error(errno, std::system_category(), "semget");
     }
+    // questionable loop. why might this loop?
   } while (semid == -1);
   return new SemaphoreV(semid);
 }
@@ -102,7 +108,7 @@ void SemaphoreV::unlink(Token &key) {
   }
 }
 
-int SemaphoreV::valueOf() {
+unsigned SemaphoreV::valueOf() {
   const int result = semctl(semid, OPERATION_COUNTER, GETVAL);
   if (result != -1) {
     return result;
@@ -110,10 +116,20 @@ int SemaphoreV::valueOf() {
   throw std::system_error(errno, std::system_category(), "semctl");
 }
 
-void SemaphoreV::wait() {
+unsigned SemaphoreV::refs() {
+  const int result = semctl(semid, REF_COUNT, GETVAL);
+  if (result != -1) {
+    return result;
+  }
+  throw std::system_error(errno, std::system_category(), "semctl");
+}
+
+void SemaphoreV::wait() { wait(1); }
+
+void SemaphoreV::wait(unsigned value) {
   struct sembuf op;
   op.sem_num = OPERATION_COUNTER;
-  op.sem_op = -1;
+  op.sem_op = -value;
   op.sem_flg = SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
     if (errno != EINTR) {
@@ -122,10 +138,12 @@ void SemaphoreV::wait() {
   }
 }
 
-bool SemaphoreV::trywait() {
+bool SemaphoreV::trywait() { return trywait(1); }
+
+bool SemaphoreV::trywait(unsigned value) {
   struct sembuf op;
   op.sem_num = OPERATION_COUNTER;
-  op.sem_op = -1;
+  op.sem_op = -value;
   op.sem_flg = SEM_UNDO | IPC_NOWAIT;
   while (semop(semid, &op, 1) == -1) {
     if (errno == EAGAIN) {
@@ -138,19 +156,9 @@ bool SemaphoreV::trywait() {
   return true;
 }
 
-void SemaphoreV::post() {
-  struct sembuf op;
-  op.sem_num = OPERATION_COUNTER;
-  op.sem_op = 1;
-  op.sem_flg = SEM_UNDO;
-  while (semop(semid, &op, 1) == -1) {
-    if (errno != EINTR) {
-      throw std::system_error(errno, std::system_category(), "semop");
-    }
-  }
-}
+void SemaphoreV::post() { post(1); }
 
-void SemaphoreV::op(int value) {
+void SemaphoreV::post(unsigned value) {
   struct sembuf op;
   op.sem_num = OPERATION_COUNTER;
   op.sem_op = value;
