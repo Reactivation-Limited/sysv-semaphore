@@ -3,7 +3,7 @@ node
 /node_modules/
 /coverage/
 
-OSX.cpp
+main.cpp
 *.spike.js
 /build
 /prebuilds/
