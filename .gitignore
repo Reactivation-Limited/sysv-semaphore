@@ -1,13 +1,15 @@
 .env
 node
+/.vscode/
+*.sublime*
+
 /node_modules/
 /coverage/
-
-main.cpp
-*.spike.js
 /build
 /prebuilds/
+/include/
+/lib/
+/vendor/
 
-.vscode/
-*.sublime*
+
 
