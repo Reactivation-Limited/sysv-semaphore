@@ -1,11 +1,9 @@
-%module OSX
+%module main
 
 %{
 #define NAPI_ENABLE_CPP_EXCEPTIONS
 #include "error.h"
-#include "semaphore-posix.h"
 #include "semaphore-sysv.h"
-#include "flock.h"
 
 #include <napi.h>
 #include <errnoname.c>
@@ -26,7 +24,4 @@
 }
 
 %include "token.h"
-%include "semaphore-posix.h"
 %include "semaphore-sysv.h"
-%nodefaultctor Flock;
-%include "flock.h"
