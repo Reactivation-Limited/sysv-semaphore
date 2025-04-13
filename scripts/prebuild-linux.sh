@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 npm ci
-npm run swig
 
 for ARCH in arm64 i386 amd64
 do
