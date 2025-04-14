@@ -1,23 +1,9 @@
 #include "semaphore-sysv.h"
+#include "mock_syscalls.h"
 #include <cerrno>
 #include <errnoname.c>
 #include <errnoname.h>
 #include <gtest/gtest.h>
-#include <sys/sem.h>
-
-// Mock functions for syscalls
-extern "C" {
-int mock_semget(key_t key, int nsems, int semflg) {
-  errno = EACCES; // Simulate permission denied
-  printf("%d", errno);
-  return -1;
-}
-}
-
-// Replace the real syscalls with our mocks
-// haha does not work, obviously as not defined in the subject code
-
-#define semget mock_semget
 
 class SemaphoreVTest : public ::testing::Test {
 protected:
@@ -40,6 +26,30 @@ TEST_F(SemaphoreVTest, OpenFailsWhenSemgetFails) {
     EXPECT_EQ(e.code().value(), ENOENT);
     EXPECT_STREQ(e.what(), "semget: No such file or directory");
   }
+}
+
+TEST(SemaphoreVTest, SemgetWorksWithStack) {
+  MockCall mock_ftok = {.syscall = MOCK_FTOK,
+                        .args.ftok_args = {.pathname = __FILE__, .proj_id = 42},
+                        .return_value = 1234,
+                        .errno_value = 0};
+  mock_push_expected_call(mock_ftok);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  MockCall mock = {.syscall = MOCK_SEMGET,
+                   .args.semget_args = {.key = key.valueOf(), .nsems = 1, .semflg = 0666},
+                   .return_value = 42,
+                   .errno_value = 0};
+  mock_push_expected_call(mock);
+
+  // auto semaphore = SemaphoreV::open(0x1234);
+
+  SemaphoreV *sem = SemaphoreV::create(key, 1, 0666);
+  EXPECT_EQ(errno, 0);
+
+  mock_reset();
 }
 
 int main(int argc, char **argv) {
