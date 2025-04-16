@@ -95,6 +95,7 @@ TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
   mock3.args.semctl_args.semid = 5678;
   mock3.args.semctl_args.semnum = 0;
   mock3.args.semctl_args.cmd = SETVAL;
+  mock3.args.semctl_args.arg.val = 1;
   mock3.return_value = 0;
   mock3.errno_value = 0;
   mock_push_expected_call(mock3);
@@ -102,7 +103,7 @@ TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
   // Execute calls in the same order
   EXPECT_EQ(ftok("test", 42), 1234);
   EXPECT_EQ(semget(1234, 2, 0600), 5678);
-  EXPECT_EQ(semctl(5678, 0, SETVAL), 0);
+  EXPECT_EQ(semctl(5678, 0, SETVAL, 1), 0);
 
   // Queue should be empty now
   EXPECT_THROW(ftok("test", 42), MockFailure);

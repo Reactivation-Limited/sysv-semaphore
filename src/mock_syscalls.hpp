@@ -19,6 +19,8 @@ typedef enum { MOCK_SEMGET, MOCK_SEMOP, MOCK_SEMCTL, MOCK_FTOK } MockSyscall;
 
 typedef struct {
   MockSyscall syscall;
+  int return_value;
+  int errno_value;
   union {
     struct {
       key_t key;
@@ -36,6 +38,7 @@ typedef struct {
       int semid;
       int semnum;
       int cmd;
+      semun arg;
     } semctl_args;
 
     struct {
@@ -43,9 +46,6 @@ typedef struct {
       int proj_id;
     } ftok_args;
   } args;
-
-  int return_value;
-  int errno_value;
 
 } MockCall;
 

@@ -16,18 +16,17 @@ protected:
 };
 
 TEST_F(SemaphoreVTest, SemgetWorksWithStack) {
-  MockCall mock_ftok{};
-  mock_ftok.syscall = MOCK_FTOK;
-  mock_ftok.args.ftok_args.pathname = __FILE__;
-  mock_ftok.args.ftok_args.proj_id = 42;
-  mock_ftok.return_value = 1234;
-  mock_ftok.errno_value = 0;
-  mock_push_expected_call(mock_ftok);
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
 
   Token key(__FILE__, 42);
   EXPECT_EQ(key.valueOf(), 1234);
 
-  MockCall mock{};
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
   mock.args.semget_args.nsems = 2;
@@ -40,6 +39,7 @@ TEST_F(SemaphoreVTest, SemgetWorksWithStack) {
   mock.args.semctl_args.semid = 42;
   mock.args.semctl_args.semnum = 0;
   mock.args.semctl_args.cmd = SETVAL;
+  mock.args.semctl_args.arg.val = 1;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);

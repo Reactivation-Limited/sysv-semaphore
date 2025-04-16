@@ -1,6 +1,7 @@
 #include "mock_syscalls.hpp"
 #include "errnoname.hpp"
 #include <cerrno>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -82,7 +83,12 @@ extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
 }
 
 extern "C" int semctl(int semid, int semnum, int cmd, ...) {
-  printf("mock semctl %d %d %d\n", semid, semnum, cmd);
+  va_list ap;
+  va_start(ap, cmd);
+  semun arg = va_arg(ap, semun);
+  va_end(ap);
+
+  printf("mock semctl %d %d %d val %d\n", semid, semnum, cmd, arg.val);
   MockCall call = pop_call(MOCK_SEMCTL);
 
   if (call.args.semctl_args.semid != semid || call.args.semctl_args.semnum != semnum ||
@@ -92,6 +98,16 @@ extern "C" int semctl(int semid, int semnum, int cmd, ...) {
        << " but expected semid=" << call.args.semctl_args.semid << " semnum=" << call.args.semctl_args.semnum
        << " cmd=" << call.args.semctl_args.cmd;
     throw MockFailure(ss.str());
+  }
+
+  if (cmd == SETVAL) {
+    // For SETVAL, the argument is passed directly as an int
+    if (arg.val != call.args.semctl_args.arg.val) {
+      std::stringstream ss;
+      ss << "[MOCK] semctl SETVAL value mismatch: called with val=" << arg.val
+         << " but expected val=" << call.args.semctl_args.arg.val;
+      throw MockFailure(ss.str());
+    }
   }
 
   return call.return_value;
