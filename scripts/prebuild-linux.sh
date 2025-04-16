@@ -2,8 +2,6 @@
 
 npm ci
 
-./scripts/gtest.sh
-
 for ARCH in arm64 i386 amd64
 do
   npx prebuildify --strip --arch $ARCH

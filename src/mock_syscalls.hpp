@@ -1,13 +1,19 @@
 #pragma once
 
-// #include <queue>
-// #include <string>
+#include <queue>
+#include <stdexcept>
+#include <string>
 #include <sys/ipc.h>
 #include <sys/sem.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+class MockFailure : public std::runtime_error {
+public:
+  explicit MockFailure(const std::string &message) : std::runtime_error(message) {}
+};
 
 typedef enum { MOCK_SEMGET, MOCK_SEMOP, MOCK_SEMCTL, MOCK_FTOK } MockSyscall;
 

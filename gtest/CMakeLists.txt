@@ -20,12 +20,30 @@ include_directories(
     ../src-vendor/errnoname
 )
 
+# Build mock_syscalls as a shared library
 add_library(mocksys SHARED
     ../src/mock_syscalls.cpp
     ../src-vendor/errnoname/errnoname.c
 )
 
-# Add the test executable with all required source files
+# Add GTest include directory to mocksys target
+target_include_directories(mocksys PUBLIC ${googletest_SOURCE_DIR}/googletest/include)
+
+# Create mock_syscalls test executable
+add_executable(mock_syscalls_tests
+    ../src/mock_syscalls.test.cpp
+)
+
+# Link against GoogleTest and mocksys library
+target_link_libraries(mock_syscalls_tests
+    PRIVATE
+    GTest::gtest
+    GTest::gtest_main
+    mocksys
+    pthread
+)
+
+# Add the semaphore test executable
 add_executable(semaphore_tests 
     ../src/semaphore-sysv.test.cpp
     ../src/semaphore-sysv.cpp
@@ -35,12 +53,13 @@ add_executable(semaphore_tests
 
 # Link against GoogleTest and the required libraries
 target_link_libraries(semaphore_tests
+    PRIVATE
     GTest::gtest
     GTest::gtest_main
-    pthread
     mocksys
+    pthread
 )
 
 add_custom_target(build_all ALL
-    DEPENDS mocksys semaphore_tests
+    DEPENDS mocksys mock_syscalls_tests semaphore_tests
 )
