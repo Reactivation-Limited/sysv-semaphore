@@ -56,8 +56,8 @@ extern "C" int semget(key_t key, int nsems, int semflg) {
   if (call.args.semget_args.key != key || call.args.semget_args.nsems != nsems ||
       call.args.semget_args.semflg != semflg) {
     std::stringstream ss;
-    ss << "[MOCK] semget args mismatch: expected key=" << key << " nsems=" << nsems << " semflg=" << semflg
-       << " but got key=" << call.args.semget_args.key << " nsems=" << call.args.semget_args.nsems
+    ss << "[MOCK] semget args mismatch: called with key=" << key << " nsems=" << nsems << " semflg=" << semflg
+       << " but expected key=" << call.args.semget_args.key << " nsems=" << call.args.semget_args.nsems
        << " semflg=" << call.args.semget_args.semflg;
     throw MockFailure(ss.str());
   }
@@ -70,10 +70,11 @@ extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
   printf("mock semop %x %p %zu\n", semid, sops, nsops);
   MockCall call = pop_call(MOCK_SEMOP);
 
+  // here need to check the sembuf, which gets complicated
   if (call.args.semop_args.semid != semid || call.args.semop_args.nsops != nsops) {
     std::stringstream ss;
-    ss << "[MOCK] semop args mismatch: expected semid=" << semid << " nsops=" << nsops
-       << " but got semid=" << call.args.semop_args.semid << " nsops=" << call.args.semop_args.nsops;
+    ss << "[MOCK] semop args mismatch: called with semid=" << semid << " nsops=" << nsops
+       << " but expected semid=" << call.args.semop_args.semid << " nsops=" << call.args.semop_args.nsops;
     throw MockFailure(ss.str());
   }
 
@@ -87,8 +88,8 @@ extern "C" int semctl(int semid, int semnum, int cmd, ...) {
   if (call.args.semctl_args.semid != semid || call.args.semctl_args.semnum != semnum ||
       call.args.semctl_args.cmd != cmd) {
     std::stringstream ss;
-    ss << "[MOCK] semctl args mismatch: expected semid=" << semid << " semnum=" << semnum << " cmd=" << cmd
-       << " but got semid=" << call.args.semctl_args.semid << " semnum=" << call.args.semctl_args.semnum
+    ss << "[MOCK] semctl args mismatch: called with semid=" << semid << " semnum=" << semnum << " cmd=" << cmd
+       << " but expected semid=" << call.args.semctl_args.semid << " semnum=" << call.args.semctl_args.semnum
        << " cmd=" << call.args.semctl_args.cmd;
     throw MockFailure(ss.str());
   }
@@ -102,8 +103,8 @@ extern "C" key_t ftok(const char *pathname, int proj_id) {
 
   if (strcmp(call.args.ftok_args.pathname, pathname) != 0 || call.args.ftok_args.proj_id != proj_id) {
     std::stringstream ss;
-    ss << "[MOCK] ftok args mismatch: expected pathname=" << pathname << " proj_id=" << proj_id
-       << " but got pathname=" << call.args.ftok_args.pathname << " proj_id=" << call.args.ftok_args.proj_id;
+    ss << "[MOCK] ftok args mismatch: called with pathname=" << pathname << " proj_id=" << proj_id
+       << " but expected pathname=" << call.args.ftok_args.pathname << " proj_id=" << call.args.ftok_args.proj_id;
     throw MockFailure(ss.str());
   }
 
