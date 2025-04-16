@@ -57,9 +57,10 @@ extern "C" int semget(key_t key, int nsems, int semflg) {
   if (call.args.semget_args.key != key || call.args.semget_args.nsems != nsems ||
       call.args.semget_args.semflg != semflg) {
     std::stringstream ss;
-    ss << "[MOCK] semget args mismatch: called with key=" << key << " nsems=" << nsems << " semflg=" << semflg
-       << " but expected key=" << call.args.semget_args.key << " nsems=" << call.args.semget_args.nsems
-       << " semflg=" << call.args.semget_args.semflg;
+    ss << "[MOCK] semget args mismatch: called with key=" << key << " nsems=" << nsems << std::oct
+       << " semflg=" << std::oct << semflg << " but expected key=" << std::dec << call.args.semget_args.key
+       << " nsems=" << call.args.semget_args.nsems << std::oct << " semflg=" << std::oct
+       << call.args.semget_args.semflg;
     throw MockFailure(ss.str());
   }
 
