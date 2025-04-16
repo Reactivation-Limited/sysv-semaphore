@@ -62,22 +62,19 @@ SemaphoreV *SemaphoreV::create(Token &key, int mode, int value) {
 SemaphoreV *SemaphoreV::createExclusive(Token &key, int mode, int value) {
   int semid;
 
-  mode &= 0x1FF;
-  do {
-    semid = semget(*key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
-    if (semid != -1) {
-      // set the initial value
-      semun arg;
-      arg.val = value;
-      if (semctl(semid, OPERATION_COUNTER, SETVAL, arg) == -1) {
-        // might want to close the sem?
-        throw std::system_error(errno, std::system_category(), "semctl");
-      }
-    } else {
-      throw std::system_error(errno, std::system_category(), "semget");
+  mode &= 0777;
+  semid = semget(*key, SEMAPHORES, mode | IPC_CREAT | IPC_EXCL);
+  if (semid != -1) {
+    // set the initial value
+    semun arg;
+    arg.val = value;
+    if (semctl(semid, OPERATION_COUNTER, SETVAL, arg) == -1) {
+      // might want to close the sem?
+      throw std::system_error(errno, std::system_category(), "semctl");
     }
-    // questionable loop. why might this loop?
-  } while (semid == -1);
+  } else {
+    throw std::system_error(errno, std::system_category(), "semget");
+  }
   return new SemaphoreV(semid);
 }
 
