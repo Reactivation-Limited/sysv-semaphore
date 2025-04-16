@@ -4,7 +4,9 @@
   "description": "node bindings for Unix System V Semaphores",
   "main": "index.js",
   "scripts": {
-    "test": "node node_modules/jest/bin/jest.js",
+    "test": "npm run jest && npm run gtest",
+    "jest": "node node_modules/jest/bin/jest.js",
+    "gtest": "scripts/gtest.sh",
     "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false",
     "build:debug": "node-gyp rebuild --debug",
     "prepare": "husky",
@@ -13,8 +15,7 @@
     "build": "npm run build-darwin && npm run build-linux",
     "install": "node-gyp-build",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
-    "lint": "eslint src",
-    "install:gtest": "./scripts/install-gtest.sh"
+    "lint": "eslint src"
   },
   "dependencies": {
     "clang-format": "1.8.0",

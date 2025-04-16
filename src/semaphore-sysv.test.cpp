@@ -4,12 +4,14 @@
 #include <errnoname.c>
 #include <errnoname.h>
 #include <gtest/gtest.h>
+#include <sys/sem.h>
 
 class SemaphoreVTest : public ::testing::Test {
 protected:
   void SetUp() override {
     // Reset errno before each test
     errno = 0;
+    mock_reset();
   }
 };
 

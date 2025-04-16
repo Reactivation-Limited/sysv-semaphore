@@ -13,7 +13,7 @@ WORKDIR /root
 # required for -napi swig target
 RUN git clone https://salsa.debian.org/debian/swig.git --depth 1
 # fetch swig build deps
-RUN apt-get install -y automake libtool bison libpcre2-dev
+RUN apt-get install -y automake libtool bison libpcre2-dev cmake
 
 WORKDIR /root/swig
 RUN ./autogen.sh
@@ -22,6 +22,8 @@ RUN make
 RUN make install
 
 WORKDIR /root/project
+
+RUN apt-get install -y cmake
 
 RUN npm cache clean -f
 RUN npm install -g n

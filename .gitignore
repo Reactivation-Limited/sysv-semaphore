@@ -7,9 +7,6 @@ node
 /coverage/
 build/
 /prebuilds/
-/include/
-/lib/
-/vendor/
-
+/gtest/*/
 
 
