@@ -47,15 +47,18 @@ TEST_F(MockSyscallsTest, SemgetMockWorks) {
 }
 
 TEST_F(MockSyscallsTest, SemopMockWorks) {
+  struct sembuf ops[1] = {{0, 1, SEM_UNDO}};
+
   MockCall mock;
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 1234;
   mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = ops;
   mock.return_value = 0;
   mock.errno_value = 0;
 
   mock_push_expected_call(mock);
-  EXPECT_EQ(semop(1234, nullptr, 1), 0);
+  EXPECT_EQ(semop(1234, ops, 1), 0);
 }
 
 TEST_F(MockSyscallsTest, SemctlMockWorks) {

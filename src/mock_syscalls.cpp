@@ -69,7 +69,7 @@ extern "C" int semget(key_t key, int nsems, int semflg) {
 }
 
 extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
-  printf("mock semop %x %p %zu\n", semid, sops, nsops);
+  printf("mock semop %d %p %zu\n", semid, sops, nsops);
   MockCall call = pop_call(MOCK_SEMOP);
 
   // here need to check the sembuf, which gets complicated
@@ -78,6 +78,19 @@ extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
     ss << "[MOCK] semop args mismatch: called with semid=" << semid << " nsops=" << nsops
        << " but expected semid=" << call.args.semop_args.semid << " nsops=" << call.args.semop_args.nsops;
     throw MockFailure(ss.str());
+  }
+
+  // Validate each sembuf in the array
+  for (size_t i = 0; i < nsops; i++) {
+    const sembuf &op = call.args.semop_args.sops[i];
+
+    if (op.sem_num != sops[i].sem_num || op.sem_op != sops[i].sem_op || op.sem_flg != sops[i].sem_flg) {
+      std::stringstream ss;
+      ss << "[MOCK] semop sembuf[" << i << "] mismatch: called with sem_num=" << sops[i].sem_num
+         << " sem_op=" << sops[i].sem_op << " sem_flg=" << std::hex << sops[i].sem_flg
+         << " but expected sem_num=" << op.sem_num << " sem_op=" << op.sem_op << " sem_flg=" << std::hex << op.sem_flg;
+      throw MockFailure(ss.str());
+    }
   }
 
   return call.return_value;

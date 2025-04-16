@@ -120,6 +120,172 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctlError) {
   mock_reset();
 }
 
+TEST_F(SemaphoreVTest, OpenSucceeds) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0; // No creation flags for open
+  mock.return_value = 42;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  // Set up the expected sembuf array
+  struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
+
+  mock.syscall = MOCK_SEMOP;
+  mock.args.semop_args.semid = 42;
+  mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = expected_sops;
+  mock.return_value = 0;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  SemaphoreV *sem = SemaphoreV::open(key);
+  EXPECT_NE(sem, nullptr);
+  EXPECT_EQ(errno, 0);
+
+  mock_reset();
+}
+
+TEST_F(SemaphoreVTest, OpenFailsWhenNotExists) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = -1;
+  mock.errno_value = ENOENT;
+  mock_push_expected_call(mock);
+
+  try {
+    SemaphoreV::open(key);
+    FAIL() << "Expected std::system_error";
+  } catch (const std::system_error &e) {
+    EXPECT_EQ(e.code().value(), ENOENT);
+  }
+
+  mock_reset();
+}
+
+TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = 42;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  // Set up the expected sembuf array
+  struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
+
+  mock.syscall = MOCK_SEMOP;
+  mock.args.semop_args.semid = 42;
+  mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = expected_sops;
+  mock.return_value = -1;
+  mock.errno_value = ENOSPC;
+  mock_push_expected_call(mock);
+
+  try {
+    SemaphoreV::open(key);
+    FAIL() << "Expected std::system_error";
+  } catch (const std::system_error &e) {
+    EXPECT_EQ(e.code().value(), ENOSPC);
+  }
+
+  mock_reset();
+}
+
+TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = 42;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  // Set up the expected sembuf array - same for all three calls
+  struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
+
+  // First semop call - interrupted
+  mock.syscall = MOCK_SEMOP;
+  mock.args.semop_args.semid = 42;
+  mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = expected_sops;
+  mock.return_value = -1;
+  mock.errno_value = EINTR;
+  mock_push_expected_call(mock);
+
+  // Second semop call - interrupted again
+  mock.syscall = MOCK_SEMOP;
+  mock.args.semop_args.semid = 42;
+  mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = expected_sops;
+  mock.return_value = -1;
+  mock.errno_value = EINTR;
+  mock_push_expected_call(mock);
+
+  // Third semop call - succeeds
+  mock.syscall = MOCK_SEMOP;
+  mock.args.semop_args.semid = 42;
+  mock.args.semop_args.nsops = 1;
+  mock.args.semop_args.sops = expected_sops;
+  mock.return_value = 0;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  SemaphoreV *sem = SemaphoreV::open(key);
+  EXPECT_NE(sem, nullptr);
+  EXPECT_EQ(errno, 0);
+
+  mock_reset();
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
