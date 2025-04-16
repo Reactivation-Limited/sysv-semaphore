@@ -173,7 +173,7 @@ void SemaphoreV::close() {
   op.sem_op = -1;
   op.sem_flg = IPC_NOWAIT | SEM_UNDO;
   while (semop(semid, &op, 1) == -1) {
-    if (errno == EAGAIN) {
+    if (errno == EAGAIN) { // indicates the REF_COUNT is 0
       if (semctl(semid, 0, IPC_RMID) == -1) {
         throw std::system_error(errno, std::system_category(), "semctl");
       } else {
