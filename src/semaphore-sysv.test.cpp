@@ -712,6 +712,108 @@ TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
   mock_reset();
 }
 
+TEST_F(SemaphoreVTest, UnlinkSucceeds) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = 42;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  mock.syscall = MOCK_SEMCTL;
+  mock.args.semctl_args.semid = 42;
+  mock.args.semctl_args.semnum = 0;
+  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.return_value = 0;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  SemaphoreV::unlink(key);
+  EXPECT_EQ(errno, 0);
+
+  mock_reset();
+}
+
+TEST_F(SemaphoreVTest, UnlinkFailsOnSemget) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = -1;
+  mock.errno_value = ENOENT;
+  mock_push_expected_call(mock);
+
+  try {
+    SemaphoreV::unlink(key);
+    FAIL() << "Expected std::system_error";
+  } catch (const std::system_error &e) {
+    EXPECT_EQ(e.code().value(), ENOENT);
+  }
+
+  mock_reset();
+}
+
+TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
+  MockCall mock{};
+  mock.syscall = MOCK_FTOK;
+  mock.args.ftok_args.pathname = __FILE__;
+  mock.args.ftok_args.proj_id = 42;
+  mock.return_value = 1234;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  Token key(__FILE__, 42);
+  EXPECT_EQ(key.valueOf(), 1234);
+
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0;
+  mock.return_value = 42;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
+
+  mock.syscall = MOCK_SEMCTL;
+  mock.args.semctl_args.semid = 42;
+  mock.args.semctl_args.semnum = 0;
+  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.return_value = -1;
+  mock.errno_value = EPERM;
+  mock_push_expected_call(mock);
+
+  try {
+    SemaphoreV::unlink(key);
+    FAIL() << "Expected std::system_error";
+  } catch (const std::system_error &e) {
+    EXPECT_EQ(e.code().value(), EPERM);
+  }
+
+  mock_reset();
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
