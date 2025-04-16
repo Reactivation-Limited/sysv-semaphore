@@ -16,24 +16,36 @@ protected:
 };
 
 TEST_F(SemaphoreVTest, SemgetWorksWithStack) {
-  MockCall mock_ftok = {.syscall = MOCK_FTOK,
-                        .args.ftok_args = {.pathname = __FILE__, .proj_id = 42},
-                        .return_value = 1234,
-                        .errno_value = 0};
+  MockCall mock_ftok{};
+  mock_ftok.syscall = MOCK_FTOK;
+  mock_ftok.args.ftok_args.pathname = __FILE__;
+  mock_ftok.args.ftok_args.proj_id = 42;
+  mock_ftok.return_value = 1234;
+  mock_ftok.errno_value = 0;
   mock_push_expected_call(mock_ftok);
 
   Token key(__FILE__, 42);
   EXPECT_EQ(key.valueOf(), 1234);
 
-  MockCall mock = {.syscall = MOCK_SEMGET,
-                   .args.semget_args = {.key = key.valueOf(), .nsems = 1, .semflg = 0666},
-                   .return_value = 42,
-                   .errno_value = 0};
+  MockCall mock{};
+  mock.syscall = MOCK_SEMGET;
+  mock.args.semget_args.key = key.valueOf();
+  mock.args.semget_args.nsems = 2;
+  mock.args.semget_args.semflg = 0666 | IPC_CREAT | IPC_EXCL;
+  mock.return_value = 42;
+  mock.errno_value = 0;
   mock_push_expected_call(mock);
 
-  // auto semaphore = SemaphoreV::open(0x1234);
+  mock.syscall = MOCK_SEMCTL;
+  mock.args.semctl_args.semid = 42;
+  mock.args.semctl_args.semnum = 0;
+  mock.args.semctl_args.cmd = SETVAL;
+  mock.return_value = 0;
+  mock.errno_value = 0;
+  mock_push_expected_call(mock);
 
-  SemaphoreV *sem = SemaphoreV::create(key, 1, 0666);
+  SemaphoreV *sem = SemaphoreV::create(key, 0666, 1);
+  EXPECT_NE(sem, nullptr);
   EXPECT_EQ(errno, 0);
 
   mock_reset();
