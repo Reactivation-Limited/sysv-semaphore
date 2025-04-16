@@ -21,7 +21,7 @@ include_directories(
 )
 
 add_library(mocksys SHARED
-    ../src/mock_syscalls.c
+    ../src/mock_syscalls.cpp
     ../src-vendor/errnoname/errnoname.c
 )
 

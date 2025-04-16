@@ -1,7 +1,9 @@
 #pragma once
 
-#include <stddef.h>
+// #include <queue>
+// #include <string>
 #include <sys/ipc.h>
+#include <sys/sem.h>
 
 #ifdef __cplusplus
 extern "C" {
