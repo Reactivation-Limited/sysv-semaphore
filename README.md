@@ -45,9 +45,21 @@ const sem = Semaphore.open('/path/to/some/file');
 ```javascript
 // Block waiting for the semaphore (not recommended in most cases)
 sem.wait();
+sem.wait(1);
+
+// Block waiting for the semaphore to be greater then the value (not recommended in most cases)
+sem.wait(10);
 
 // Non-blocking attempt to acquire semaphore
 if (sem.trywait()) {
+  // Critical section
+}
+if (sem.trywait(1)) {
+  // Critical section
+}
+
+// Aquire multiple units
+if (sem.trywait(10)) {
   // Critical section
 }
 
@@ -57,13 +69,11 @@ const value = sem.valueOf();
 // Release one unit
 sem.post();
 
-// Aquire multiple units
-if (sem.trywait(10)) {
-  // Critical section
-}
-
 // Release multiple units
 sem.post(10);
+
+// get number of references to this semaphore
+sem.refs();
 
 // Clean up
 sem.close();
@@ -102,7 +112,7 @@ async function useResourcePool() {
   // Aquire 2 resources
   if (poolSemaphore.trywait(2)) {
     try {
-      // Use one of the 5 available resources
+      // Use the aquired resources
       await doSomeWork();
     } finally {
       // Release 2 resources
@@ -132,6 +142,8 @@ All operations can throw system errors. The error object will have:
 - `error.message`: Includes the failing system call name
 
 Common error codes:
+
+** refer to your systems manual page for the syscall in the error message **
 
 - `EACCES`: Permission denied
 - `EEXIST`: Semaphore exists (with createExclusive)
