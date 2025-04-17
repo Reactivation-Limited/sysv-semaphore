@@ -1,90 +1,167 @@
 # sysv-semaphore
 
-node bindings for Unix System V Semaphores.
+Node.js bindings for Unix System V Semaphores.
 
-## Why use this lib?
+Should work on any system that supports System V semaphores. YMMV. If it breaks, let me know, or better still fix it and make a PR.
 
-Get all the goodness and resiliece of System V semaphores in your node apps.
+## Requirements
 
-Unlike posix semaphores, operations on System V semaphores are automatically undoe when a process exits, even if the process crashed thanks to `SEM_UNDO`. See usage below.
-
-This library maintains a reference count using a second semaphore so when the last process closes the semaphore it will be removed from the system. No dangling semaphores, mostly.
-
-Edge case: if the last process that has the semaphore open crashes, the semaphore won't be removed.
-
-Built and tested on OSX. Also built and tested on Debian Linux.
-
-Should work on any system that support Sys V semaphores. YMMV. If it breaks, let me know, or better still fix it and make a PR.
-
-## General information and philosophical ramblings
-
-There is no hand-holding here - these are thin wrappers over the system calls. If a call throws a system error, treat is as a warning that you've made a mistake in your implementation you should investigate. Failed calls will throw an error with `error.code` set to a string matching the errno, just like `fs` does it, and also tell yu which underlying system call the failure came from.
-
-This is free software with no warranty expressed or implied. If it breaks you get to keep both pieces. See the `LICENSE`.
+- Node.js 14.x or later
+- A Unix-like operating system with System V IPC support
+- Prebuilt binaries supported: Linux (x64, arm64) OSX (x64, arm64)
+- otherwise, C++ build tools (for native compilation)
 
 ## Installation
 
-`npm install sysv-semaphore`
+```bash
+npm install sysv-semaphore
+```
+
+For other platforms, the module will be built from source during installation.
 
 ## Usage
 
-A simple API that uses the Unix SystemV `semget` family of system calls to create and use semaphores.
+A simple API that uses the Unix System V `semget` family of system calls to create and use semaphores.
 
 All operations are performed with `SEM_UNDO` ensuring that semaphores are released by the kernel when the process exits.
 
-For error codes see `man -s2 semget`, `man -s2 semctl` and `man -s2 semop`.
+### API Reference
 
-In the case of `EINTR`, the operation will be automatically retried.
-
-See [https://stackoverflow.com/questions/368322/differences-between-system-v-and-posix-semaphores] for a discussion of the differences between POSIX and SYSV semaphores.
-
-TL;DR; POSIX semaphores are lightweight, but have failure modes when a process crashes. SystemV semaphores are "heavier", but more much more robust.
-
-Blocking and non-blocking operations are both possible. Typically you will want to use the non-blocking version. See https://nodejs.org/en/learn/asynchronous-work/overview-of-blocking-vs-non-blocking for a explanation of how blocking calls work in node.
-
-Most of the time you will want to `create`, then use `trywait` to aquire a lock and `post` to release it. Use `op` when you want to release aquired locks en-masse.
+#### Creating/Opening Semaphores
 
 ```javascript
-const { Semaphore } = require('OSiX');
-
-// create a semaphore, but only if one does not already exist, and set the initial value to 10
+// Create a semaphore, but only if one does not already exist
 const sem = Semaphore.createExclusive('/path/to/some/file', 10);
 
-// open an existing semaphore, or, if it does not exist then create it and set the inital value to 10
-// Note: if the semaphore exists, then the initial value is IGNORED
-// (most of the time, this is the function you'll want to use)
+// Open an existing semaphore, or create it if it doesn't exist
 const sem = Semaphore.create('/path/to/some/file', 10);
 
-// open an existing semaphore
+// Open an existing semaphore
 const sem = Semaphore.open('/path/to/some/file');
-
-// block waiting for the semaphore to be greater than 0
-sem.wait();
-
-// if the semaphore value is greater than 0, decrement it and return true, otherwise return false
-if (sem.trywait()) {
-  // enter crital section of code
-} else {
-  // do something else
-}
-
-sem.valueOf(); // get the current value of the semaphore
-
-// release a semaphore you aquired using wait or trywait. Increments the semamphore value.
-// never blocks.
-// Note: this can increase the semaphore to a value greater than the initial value!
-sem.post();
-
-// release many semaphores you aquired using wait or trywait. Adds the argument to the semamphore value.
-// never blocks.
-// Note: this can increase the semaphore to a value greater than the initial value!
-sem.post(10);
-
-sem.close(); // decrements the semaphore reference count and unlinks the semphore if this was the last reference by ANY process
 ```
 
-The `create`, `createExclusive` and `open` calls use `semget` and `semctl` under the hood.
+#### Semaphore Operations
 
-## Caveats
+```javascript
+// Block waiting for the semaphore (not recommended in most cases)
+sem.wait();
 
-If the last process with the semaphore open aborts, then the semaphore will not be unlinked, although it's value will be corrected due to the `SEM_UNDO` semantics. Consequently, it is most robust to use `create` rather than `createExclusive` as the semaphore will already exist if this happens.
+// Non-blocking attempt to acquire semaphore
+if (sem.trywait()) {
+  // Critical section
+}
+
+// Get current value
+const value = sem.valueOf();
+
+// Release one unit
+sem.post();
+
+// Aquire multiple units
+if (sem.trywait(10)) {
+  // Critical section
+}
+
+// Release multiple units
+sem.post(10);
+
+// Clean up
+sem.close();
+```
+
+### Basic Example
+
+```javascript
+// myModule.js
+const { Semaphore } = require('sysv-semaphore');
+
+// Create a module-scoped semaphore
+// Initial value of 1 makes this a mutex/binary semaphore
+const mutex = Semaphore.create('/path/to/some/file', 1);
+
+// Example function that uses the semaphore
+async function doSomethingExclusive() {
+  if (mutex.trywait()) {
+    try {
+      // Critical section
+      console.log('Acquired semaphore');
+      await someAsyncWork();
+    } finally {
+      // Release the semaphore
+      mutex.post();
+    }
+  } else {
+    console.log('Semaphore was not available');
+  }
+}
+
+// Another example with a counting semaphore
+const poolSemaphore = Semaphore.create('/path/to/some/file', 5); // Allow 5 concurrent operations
+
+async function useResourcePool() {
+  // Aquire 2 resources
+  if (poolSemaphore.trywait(2)) {
+    try {
+      // Use one of the 5 available resources
+      await doSomeWork();
+    } finally {
+      // Release 2 resources
+      poolSemaphore.post(2);
+    }
+  } else {
+    // Pool is full, handle accordingly
+  }
+}
+
+// Semaphores will be automatically cleaned up when the process exits
+```
+
+## Best Practices
+
+1. Always use `try/finally` blocks to ensure semaphores are properly closed
+2. Prefer `trywait()` over `wait()` to avoid blocking the Node.js event loop
+3. Use `create()` instead of `createExclusive()` for better crash recovery
+4. Keep critical sections as short as possible
+5. Handle errors appropriately - check `error.code` for specific error conditions
+
+## Error Handling
+
+All operations can throw system errors. The error object will have:
+
+- `error.code`: Standard Node.js error codes (e.g., 'EACCES', 'EINVAL')
+- `error.message`: Includes the failing system call name
+
+Common error codes:
+
+- `EACCES`: Permission denied
+- `EEXIST`: Semaphore exists (with createExclusive)
+- `ENOENT`: Semaphore does not exist
+- `EINVAL`: Invalid argument
+
+## Troubleshooting
+
+1. **Semaphore not being released**:
+
+   - Ensure `close()` is called in a `finally` block
+   - Check if process crashed while holding semaphore
+
+2. **Permission errors**:
+
+   - Check file permissions of the key file
+   - Verify user has appropriate system permissions
+
+3. **Resource limits**:
+   - Check system semaphore limits (`ipcs -l`)
+   - Clean up unused semaphores (`ipcs -s` to list, `ipcrm` to remove)
+
+## Notes on Garbage Collection
+
+While the Node.js garbage collector will eventually clean up semaphores, it's best practice to explicitly call `close()` when done. This ensures:
+
+- Timely resource release
+- Predictable cleanup
+- Better system resource management
+
+## License
+
+This is free software with no warranty expressed or implied. If it breaks you get to keep both pieces. See the `LICENSE`.
