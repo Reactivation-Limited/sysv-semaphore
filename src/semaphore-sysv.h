@@ -1,5 +1,4 @@
 #include "token.h"
-#include <sys/ipc.h>
 
 class SemaphoreV {
   int semid;
@@ -12,7 +11,7 @@ public:
   static SemaphoreV *open(Token &key);
   static void unlink(Token &key);
 
-  ~SemaphoreV();
+  ~SemaphoreV(){};
   void wait();
   void wait(unsigned value);
   bool trywait();
