@@ -185,3 +185,14 @@ void SemaphoreV::close() {
   }
   semid = -1;
 }
+
+SemaphoreV::~SemaphoreV() {
+  if (semid == -1) {
+    return;
+  }
+  try {
+    close();
+  } catch (...) {
+    // Destructor should never throw - silently ignore cleanup errors
+  }
+}

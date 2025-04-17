@@ -11,7 +11,6 @@ public:
   static SemaphoreV *open(Token &key);
   static void unlink(Token &key);
 
-  ~SemaphoreV(){};
   void wait();
   void wait(unsigned value);
   bool trywait();
@@ -21,4 +20,6 @@ public:
   unsigned valueOf();
   unsigned refs();
   void close();
+
+  ~SemaphoreV();
 };
