@@ -35,7 +35,7 @@ TEST_F(MockSyscallsTest, SemopMockWorks) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 1234, .nsops = 1, .sops = ops}}});
+                           .args = {.semop = {.semid = 1234, .sops = ops, .nsops = 1}}});
 
   EXPECT_EQ(semop(1234, ops, 1), 0);
 }

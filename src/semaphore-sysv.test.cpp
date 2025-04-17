@@ -138,7 +138,7 @@ TEST_F(SemaphoreVTest, OpenSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   SemaphoreV *sem = SemaphoreV::open(key);
   EXPECT_NE(sem, nullptr);
@@ -167,15 +167,15 @@ TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
   Token key = createToken();
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = ENOSPC});
+                           .errno_value = ENOSPC,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     SemaphoreV::open(key);
@@ -191,25 +191,25 @@ TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
   Token key = createToken();
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = EINTR});
+                           .errno_value = EINTR,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = EINTR});
+                           .errno_value = EINTR,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = 0,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   SemaphoreV *sem = SemaphoreV::open(key);
   EXPECT_NE(sem, nullptr);
@@ -223,14 +223,14 @@ TEST_F(SemaphoreVTest, CreateSucceedsFirstTry) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = 42,
-       .errno_value = 0});
+       .errno_value = 0,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}},
                            .return_value = 0,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}}});
 
   SemaphoreV *sem = SemaphoreV::create(key, 0xFFFFFFFF, 1);
   EXPECT_NE(sem, nullptr);
@@ -244,20 +244,20 @@ TEST_F(SemaphoreVTest, CreateSucceedsWithExisting) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = 0,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   SemaphoreV *sem = SemaphoreV::create(key, 0xFFFFFFFF, 1);
   EXPECT_NE(sem, nullptr);
@@ -271,25 +271,25 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterRace) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = -1,
-                           .errno_value = ENOENT});
+                           .errno_value = ENOENT,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = 42,
-       .errno_value = 0});
+       .errno_value = 0,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}},
                            .return_value = 0,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}}});
 
   SemaphoreV *sem = SemaphoreV::create(key, 0xFFFFFFFF, 1);
   EXPECT_NE(sem, nullptr);
@@ -303,26 +303,26 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterSemopInterrupts) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = EINTR});
+                           .errno_value = EINTR,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = ENOSPC});
+                           .errno_value = ENOSPC,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -339,9 +339,9 @@ TEST_F(SemaphoreVTest, CreateFailsOnFirstSemgetError) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EACCES});
+       .errno_value = EACCES,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -358,14 +358,14 @@ TEST_F(SemaphoreVTest, CreateFailsOnSecondSemgetError) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = -1,
-                           .errno_value = EINVAL});
+                           .errno_value = EINVAL,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -382,14 +382,14 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemctlError) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = 42,
-       .errno_value = 0});
+       .errno_value = 0,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}},
                            .return_value = -1,
-                           .errno_value = ERANGE});
+                           .errno_value = ERANGE,
+                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -406,20 +406,20 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemopError) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = ENOSPC});
+                           .errno_value = ENOSPC,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -436,26 +436,26 @@ TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
 
   mock_push_expected_call(
       {.syscall = MOCK_SEMGET,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}},
        .return_value = -1,
-       .errno_value = EEXIST});
+       .errno_value = EEXIST,
+       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 0, .semflg = 0}}});
 
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = EINTR});
+                           .errno_value = EINTR,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}},
                            .return_value = -1,
-                           .errno_value = ENOSPC});
+                           .errno_value = ENOSPC,
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     SemaphoreV::create(key, 0xFFFFFFFF, 1);
@@ -508,14 +508,14 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
   Token key = createToken();
 
   mock_push_expected_call({.syscall = MOCK_SEMGET,
-                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}},
                            .return_value = 42,
-                           .errno_value = 0});
+                           .errno_value = 0,
+                           .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = IPC_RMID}},
                            .return_value = -1,
-                           .errno_value = EPERM});
+                           .errno_value = EPERM,
+                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = IPC_RMID}}});
 
   try {
     SemaphoreV::unlink(key);
@@ -577,9 +577,9 @@ TEST_F(SemaphoreVTest, RefsFails) {
   SemaphoreV *sem = createSemaphore();
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .args = {.semctl = {.semid = 42, .semnum = 1, .cmd = GETVAL}},
                            .return_value = -1,
-                           .errno_value = EPERM});
+                           .errno_value = EPERM,
+                           .args = {.semctl = {.semid = 42, .semnum = 1, .cmd = GETVAL}}});
 
   try {
     sem->refs();
@@ -598,7 +598,7 @@ TEST_F(SemaphoreVTest, WaitSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->wait();
   EXPECT_EQ(errno, 0);
@@ -613,7 +613,7 @@ TEST_F(SemaphoreVTest, WaitValueSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->wait(3);
   EXPECT_EQ(errno, 0);
@@ -629,17 +629,17 @@ TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->wait();
   EXPECT_EQ(errno, 0);
@@ -654,7 +654,7 @@ TEST_F(SemaphoreVTest, WaitFails) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EAGAIN,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     sem->wait();
@@ -674,7 +674,7 @@ TEST_F(SemaphoreVTest, TryWaitSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   EXPECT_TRUE(sem->trywait());
   EXPECT_EQ(errno, 0);
@@ -689,7 +689,7 @@ TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   EXPECT_TRUE(sem->trywait(3));
   EXPECT_EQ(errno, 0);
@@ -704,7 +704,7 @@ TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EAGAIN,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   EXPECT_FALSE(sem->trywait());
   EXPECT_EQ(errno, EAGAIN);
@@ -720,17 +720,17 @@ TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   EXPECT_TRUE(sem->trywait());
   EXPECT_EQ(errno, 0);
@@ -745,7 +745,7 @@ TEST_F(SemaphoreVTest, TryWaitFails) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = ERANGE,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     sem->trywait();
@@ -764,7 +764,7 @@ TEST_F(SemaphoreVTest, PostSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->post();
   EXPECT_EQ(errno, 0);
@@ -779,7 +779,7 @@ TEST_F(SemaphoreVTest, PostValueSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->post(3);
   EXPECT_EQ(errno, 0);
@@ -795,39 +795,20 @@ TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->post();
   EXPECT_EQ(errno, 0);
-
-  mock_reset();
-}
-
-TEST_F(SemaphoreVTest, PostFails) {
-  SemaphoreV *sem = createSemaphore();
-
-  struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
-  mock_push_expected_call({.syscall = MOCK_SEMOP,
-                           .return_value = -1,
-                           .errno_value = ENOSPC,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
-
-  try {
-    sem->post();
-    FAIL() << "Expected std::system_error";
-  } catch (const std::system_error &e) {
-    EXPECT_EQ(e.code().value(), ENOSPC);
-  }
 
   mock_reset();
 }
@@ -839,7 +820,7 @@ TEST_F(SemaphoreVTest, CloseSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->close();
   EXPECT_EQ(errno, 0);
@@ -854,7 +835,7 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EAGAIN,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
                            .return_value = 0,
@@ -874,7 +855,7 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EAGAIN,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMCTL,
                            .return_value = -1,
@@ -899,17 +880,17 @@ TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = EINTR,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = 0,
                            .errno_value = 0,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   sem->close();
   EXPECT_EQ(errno, 0);
@@ -924,7 +905,7 @@ TEST_F(SemaphoreVTest, CloseFails) {
   mock_push_expected_call({.syscall = MOCK_SEMOP,
                            .return_value = -1,
                            .errno_value = ENOSPC,
-                           .args = {.semop = {.semid = 42, .nsops = 1, .sops = expected_sops}}});
+                           .args = {.semop = {.semid = 42, .sops = expected_sops, .nsops = 1}}});
 
   try {
     sem->close();
