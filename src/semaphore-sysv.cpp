@@ -185,3 +185,5 @@ void SemaphoreV::close() {
   }
   semid = -1;
 }
+
+SemaphoreV::~SemaphoreV() { close(); }
