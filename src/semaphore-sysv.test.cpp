@@ -13,19 +13,25 @@ protected:
     errno = 0;
     mock_reset();
   }
+
+  Token createToken() {
+    MockCall mock{};
+    mock.syscall = MOCK_FTOK;
+    mock.args.ftok_args.pathname = __FILE__;
+    mock.args.ftok_args.proj_id = 42;
+    mock.return_value = 1234;
+    mock.errno_value = 0;
+    mock_push_expected_call(mock);
+
+    Token key(__FILE__, 42);
+    EXPECT_EQ(key.valueOf(), 1234);
+    return key;
+  }
 };
 
 TEST_F(SemaphoreVTest, CreateExclusiveSucceeds) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -53,15 +59,7 @@ TEST_F(SemaphoreVTest, CreateExclusiveSucceeds) {
 
 TEST_F(SemaphoreVTest, CreateExclusiveFailsWhenExists) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -83,15 +81,7 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsWhenExists) {
 
 TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctlError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -122,15 +112,7 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctlError) {
 
 TEST_F(SemaphoreVTest, OpenSucceeds) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -160,15 +142,7 @@ TEST_F(SemaphoreVTest, OpenSucceeds) {
 
 TEST_F(SemaphoreVTest, OpenFailsWhenNotExists) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -190,15 +164,7 @@ TEST_F(SemaphoreVTest, OpenFailsWhenNotExists) {
 
 TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -231,15 +197,7 @@ TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
 
 TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -288,15 +246,7 @@ TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
 
 TEST_F(SemaphoreVTest, CreateSucceedsFirstTry) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -324,15 +274,7 @@ TEST_F(SemaphoreVTest, CreateSucceedsFirstTry) {
 
 TEST_F(SemaphoreVTest, CreateSucceedsWithExisting) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -371,15 +313,7 @@ TEST_F(SemaphoreVTest, CreateSucceedsWithExisting) {
 
 TEST_F(SemaphoreVTest, CreateSucceedsAfterRace) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -427,15 +361,7 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterRace) {
 
 TEST_F(SemaphoreVTest, CreateSucceedsAfterSemopInterrupts) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -495,15 +421,7 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterSemopInterrupts) {
 // Error path tests
 TEST_F(SemaphoreVTest, CreateFailsOnFirstSemgetError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -525,15 +443,7 @@ TEST_F(SemaphoreVTest, CreateFailsOnFirstSemgetError) {
 
 TEST_F(SemaphoreVTest, CreateFailsOnSecondSemgetError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -565,15 +475,7 @@ TEST_F(SemaphoreVTest, CreateFailsOnSecondSemgetError) {
 
 TEST_F(SemaphoreVTest, CreateFailsOnSemctlError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -604,15 +506,7 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemctlError) {
 
 TEST_F(SemaphoreVTest, CreateFailsOnSemopError) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -654,15 +548,7 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemopError) {
 
 TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
@@ -714,15 +600,7 @@ TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
 
 TEST_F(SemaphoreVTest, UnlinkSucceeds) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -748,15 +626,7 @@ TEST_F(SemaphoreVTest, UnlinkSucceeds) {
 
 TEST_F(SemaphoreVTest, UnlinkFailsOnSemget) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -778,15 +648,7 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemget) {
 
 TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -817,15 +679,7 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
 TEST_F(SemaphoreVTest, ValueOfSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -865,15 +719,7 @@ TEST_F(SemaphoreVTest, ValueOfSucceeds) {
 TEST_F(SemaphoreVTest, ValueOfFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -917,15 +763,7 @@ TEST_F(SemaphoreVTest, ValueOfFails) {
 TEST_F(SemaphoreVTest, RefsSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -965,15 +803,7 @@ TEST_F(SemaphoreVTest, RefsSucceeds) {
 TEST_F(SemaphoreVTest, RefsFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1017,15 +847,7 @@ TEST_F(SemaphoreVTest, RefsFails) {
 TEST_F(SemaphoreVTest, WaitSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1066,15 +888,7 @@ TEST_F(SemaphoreVTest, WaitSucceeds) {
 TEST_F(SemaphoreVTest, WaitValueSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1115,15 +929,7 @@ TEST_F(SemaphoreVTest, WaitValueSucceeds) {
 TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1184,15 +990,7 @@ TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
 TEST_F(SemaphoreVTest, WaitFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1237,15 +1035,7 @@ TEST_F(SemaphoreVTest, WaitFails) {
 TEST_F(SemaphoreVTest, TryWaitSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1286,15 +1076,7 @@ TEST_F(SemaphoreVTest, TryWaitSucceeds) {
 TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1335,15 +1117,7 @@ TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
 TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1384,15 +1158,7 @@ TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
 TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1453,15 +1219,7 @@ TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
 TEST_F(SemaphoreVTest, TryWaitFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1506,15 +1264,7 @@ TEST_F(SemaphoreVTest, TryWaitFails) {
 TEST_F(SemaphoreVTest, PostSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1555,15 +1305,7 @@ TEST_F(SemaphoreVTest, PostSucceeds) {
 TEST_F(SemaphoreVTest, PostValueSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1604,15 +1346,7 @@ TEST_F(SemaphoreVTest, PostValueSucceeds) {
 TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1673,15 +1407,7 @@ TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
 TEST_F(SemaphoreVTest, PostFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1726,15 +1452,7 @@ TEST_F(SemaphoreVTest, PostFails) {
 TEST_F(SemaphoreVTest, CloseSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1775,15 +1493,7 @@ TEST_F(SemaphoreVTest, CloseSucceeds) {
 TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1832,15 +1542,7 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
 TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1893,15 +1595,7 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
 TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
@@ -1962,15 +1656,7 @@ TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
 TEST_F(SemaphoreVTest, CloseFails) {
   // First create a semaphore to get a valid semid
   MockCall mock{};
-  mock.syscall = MOCK_FTOK;
-  mock.args.ftok_args.pathname = __FILE__;
-  mock.args.ftok_args.proj_id = 42;
-  mock.return_value = 1234;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  Token key(__FILE__, 42);
-  EXPECT_EQ(key.valueOf(), 1234);
+  Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
   mock.args.semget_args.key = key.valueOf();
