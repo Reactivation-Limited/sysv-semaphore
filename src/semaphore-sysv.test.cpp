@@ -85,7 +85,7 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsWhenExists) {
   mock_reset();
 }
 
-TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctlError) {
+TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctl) {
   Token key = createToken();
 
   mock_push_expected_call(
@@ -118,24 +118,12 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemget) {
        .errno_value = EACCES,
        .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
 
-  EXPECT_THROW(SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1), std::system_error);
-}
-
-TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctl) {
-  Token key = createToken();
-
-  mock_push_expected_call(
-      {.syscall = MOCK_SEMGET,
-       .return_value = 42,
-       .errno_value = 0,
-       .args = {.semget = {.key = key.valueOf(), .nsems = 2, .semflg = 0777 | IPC_CREAT | IPC_EXCL}}});
-
-  mock_push_expected_call({.syscall = MOCK_SEMCTL,
-                           .return_value = -1,
-                           .errno_value = EACCES,
-                           .args = {.semctl = {.semid = 42, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}}});
-
-  EXPECT_THROW(SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1), std::system_error);
+  try {
+    SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
+    FAIL() << "Expected std::system_error";
+  } catch (const std::system_error &e) {
+    EXPECT_EQ(e.code().value(), EACCES);
+  }
 }
 
 TEST_F(SemaphoreVTest, OpenSucceeds) {
