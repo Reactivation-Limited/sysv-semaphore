@@ -1,15 +1,33 @@
 #include "mock_syscalls.hpp"
+#include <cerrno>
 #include <gtest/gtest.h>
 #include <sys/sem.h>
 
 class MockSyscallsTest : public ::testing::Test {
 protected:
-  void SetUp() override { mock_reset(); }
+  void SetUp() override {
+    mock_reset();
+    errno = 0; // Reset errno before each test
+  }
 
   void TearDown() override { mock_reset(); }
 };
 
-TEST_F(MockSyscallsTest, EmptyQueueThrowsException) { EXPECT_THROW(ftok("test", 42), MockFailure); }
+TEST_F(MockSyscallsTest, EmptyQueueSetsENOSYS) {
+  EXPECT_EQ(ftok("test", 42), -1);
+  EXPECT_EQ(errno, ENOSYS);
+}
+
+TEST_F(MockSyscallsTest, ArgumentMismatchSetsENODATA) {
+  mock_push_expected_call({.syscall = MOCK_FTOK,
+                           .return_value = 1234,
+                           .errno_value = 0,
+                           .args = {.ftok_args = {.pathname = "test", .proj_id = 42}}});
+
+  // Call with wrong arguments
+  EXPECT_EQ(ftok("wrong", 42), -1);
+  EXPECT_EQ(errno, ENODATA);
+}
 
 TEST_F(MockSyscallsTest, FtokMockWorks) {
   mock_push_expected_call({.syscall = MOCK_FTOK,
@@ -18,6 +36,7 @@ TEST_F(MockSyscallsTest, FtokMockWorks) {
                            .args = {.ftok_args = {.pathname = "test", .proj_id = 42}}});
 
   EXPECT_EQ(ftok("test", 42), 1234);
+  EXPECT_EQ(errno, 0);
 }
 
 TEST_F(MockSyscallsTest, SemgetMockWorks) {
@@ -27,6 +46,7 @@ TEST_F(MockSyscallsTest, SemgetMockWorks) {
                            .args = {.semget = {.key = 1234, .nsems = 2, .semflg = 0600}}});
 
   EXPECT_EQ(semget(1234, 2, 0600), 5678);
+  EXPECT_EQ(errno, 0);
 }
 
 TEST_F(MockSyscallsTest, SemopMockWorks) {
@@ -38,6 +58,7 @@ TEST_F(MockSyscallsTest, SemopMockWorks) {
                            .args = {.semop = {.semid = 1234, .sops = ops, .nsops = 1}}});
 
   EXPECT_EQ(semop(1234, ops, 1), 0);
+  EXPECT_EQ(errno, 0);
 }
 
 TEST_F(MockSyscallsTest, SemctlMockWorks) {
@@ -47,6 +68,7 @@ TEST_F(MockSyscallsTest, SemctlMockWorks) {
                            .args = {.semctl = {.semid = 1234, .semnum = 0, .cmd = GETVAL}}});
 
   EXPECT_EQ(semctl(1234, 0, GETVAL), 5);
+  EXPECT_EQ(errno, 0);
 }
 
 TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
@@ -68,11 +90,17 @@ TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
 
   // Execute calls in the same order
   EXPECT_EQ(ftok("test", 42), 1234);
+  EXPECT_EQ(errno, 0);
+
   EXPECT_EQ(semget(1234, 2, 0600), 5678);
+  EXPECT_EQ(errno, 0);
+
   EXPECT_EQ(semctl(5678, 0, SETVAL, 1), 0);
+  EXPECT_EQ(errno, 0);
 
   // Queue should be empty now
-  EXPECT_THROW(ftok("test", 42), MockFailure);
+  EXPECT_EQ(ftok("test", 42), -1);
+  EXPECT_EQ(errno, ENOSYS);
 }
 
 int main(int argc, char **argv) {
