@@ -18,14 +18,23 @@ TEST_F(MockSyscallsTest, EmptyQueueSetsENOSYS) {
   EXPECT_EQ(errno, ENOSYS);
 }
 
-TEST_F(MockSyscallsTest, ArgumentMismatchSetsENODATA) {
+TEST_F(MockSyscallsTest, FtokArgumentMismatchTests) {
+  // Test wrong pathname
   mock_push_expected_call({.syscall = MOCK_FTOK,
                            .return_value = 1234,
                            .errno_value = 0,
                            .args = {.ftok_args = {.pathname = "test", .proj_id = 42}}});
 
-  // Call with wrong arguments
   EXPECT_EQ(ftok("wrong", 42), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong proj_id
+  mock_push_expected_call({.syscall = MOCK_FTOK,
+                           .return_value = 1234,
+                           .errno_value = 0,
+                           .args = {.ftok_args = {.pathname = "test", .proj_id = 42}}});
+
+  EXPECT_EQ(ftok("test", 43), -1);
   EXPECT_EQ(errno, ENODATA);
 }
 
@@ -101,6 +110,105 @@ TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
   // Queue should be empty now
   EXPECT_EQ(ftok("test", 42), -1);
   EXPECT_EQ(errno, ENOSYS);
+}
+
+TEST_F(MockSyscallsTest, SemgetArgumentMismatchTests) {
+  // Test wrong key
+  mock_push_expected_call({.syscall = MOCK_SEMGET,
+                           .return_value = 5678,
+                           .errno_value = 0,
+                           .args = {.semget = {.key = 1234, .nsems = 2, .semflg = 0600}}});
+
+  EXPECT_EQ(semget(4321, 2, 0600), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong nsems
+  mock_push_expected_call({.syscall = MOCK_SEMGET,
+                           .return_value = 5678,
+                           .errno_value = 0,
+                           .args = {.semget = {.key = 1234, .nsems = 2, .semflg = 0600}}});
+
+  EXPECT_EQ(semget(1234, 3, 0600), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong semflg
+  mock_push_expected_call({.syscall = MOCK_SEMGET,
+                           .return_value = 5678,
+                           .errno_value = 0,
+                           .args = {.semget = {.key = 1234, .nsems = 2, .semflg = 0600}}});
+
+  EXPECT_EQ(semget(1234, 2, 0644), -1);
+  EXPECT_EQ(errno, ENODATA);
+}
+
+TEST_F(MockSyscallsTest, SemopArgumentMismatchTests) {
+  struct sembuf ops[1] = {{0, 1, SEM_UNDO}};
+  struct sembuf different_ops[1] = {{1, -1, 0}}; // Different values for testing
+
+  // Test wrong semid
+  mock_push_expected_call({.syscall = MOCK_SEMOP,
+                           .return_value = 0,
+                           .errno_value = 0,
+                           .args = {.semop = {.semid = 1234, .sops = ops, .nsops = 1}}});
+
+  EXPECT_EQ(semop(5678, ops, 1), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong nsops
+  mock_push_expected_call({.syscall = MOCK_SEMOP,
+                           .return_value = 0,
+                           .errno_value = 0,
+                           .args = {.semop = {.semid = 1234, .sops = ops, .nsops = 1}}});
+
+  EXPECT_EQ(semop(1234, ops, 2), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong sembuf values
+  mock_push_expected_call({.syscall = MOCK_SEMOP,
+                           .return_value = 0,
+                           .errno_value = 0,
+                           .args = {.semop = {.semid = 1234, .sops = ops, .nsops = 1}}});
+
+  EXPECT_EQ(semop(1234, different_ops, 1), -1);
+  EXPECT_EQ(errno, ENODATA);
+}
+
+TEST_F(MockSyscallsTest, SemctlArgumentMismatchTests) {
+  // Test wrong semid
+  mock_push_expected_call({.syscall = MOCK_SEMCTL,
+                           .return_value = 5,
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 1234, .semnum = 0, .cmd = GETVAL}}});
+
+  EXPECT_EQ(semctl(5678, 0, GETVAL), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong semnum
+  mock_push_expected_call({.syscall = MOCK_SEMCTL,
+                           .return_value = 5,
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 1234, .semnum = 0, .cmd = GETVAL}}});
+
+  EXPECT_EQ(semctl(1234, 1, GETVAL), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong cmd
+  mock_push_expected_call({.syscall = MOCK_SEMCTL,
+                           .return_value = 5,
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 1234, .semnum = 0, .cmd = GETVAL}}});
+
+  EXPECT_EQ(semctl(1234, 0, SETVAL), -1);
+  EXPECT_EQ(errno, ENODATA);
+
+  // Test wrong arg value for SETVAL
+  mock_push_expected_call({.syscall = MOCK_SEMCTL,
+                           .return_value = 0,
+                           .errno_value = 0,
+                           .args = {.semctl = {.semid = 1234, .semnum = 0, .cmd = SETVAL, .arg = {.val = 1}}}});
+
+  EXPECT_EQ(semctl(1234, 0, SETVAL, 2), -1);
+  EXPECT_EQ(errno, ENODATA);
 }
 
 int main(int argc, char **argv) {
