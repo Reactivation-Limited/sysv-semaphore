@@ -27,6 +27,32 @@ protected:
     EXPECT_EQ(key.valueOf(), 1234);
     return key;
   }
+
+  SemaphoreV *createSemaphore() {
+    Token key = createToken();
+
+    MockCall mock{};
+    mock.syscall = MOCK_SEMGET;
+    mock.args.semget_args.key = key.valueOf();
+    mock.args.semget_args.nsems = 2;
+    mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+    mock.return_value = 42;
+    mock.errno_value = 0;
+    mock_push_expected_call(mock);
+
+    mock.syscall = MOCK_SEMCTL;
+    mock.args.semctl_args.semid = 42;
+    mock.args.semctl_args.semnum = 0;
+    mock.args.semctl_args.cmd = SETVAL;
+    mock.args.semctl_args.arg.val = 1;
+    mock.return_value = 0;
+    mock.errno_value = 0;
+    mock_push_expected_call(mock);
+
+    SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
+    EXPECT_NE(sem, nullptr);
+    return sem;
+  }
 };
 
 TEST_F(SemaphoreVTest, CreateExclusiveSucceeds) {
@@ -677,31 +703,10 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
 }
 
 TEST_F(SemaphoreVTest, ValueOfSucceeds) {
-  // First create a semaphore to get a valid semid
+  SemaphoreV *sem = createSemaphore();
+
+  // Test valueOf
   MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
-
-  // Now test valueOf
   mock.syscall = MOCK_SEMCTL;
   mock.args.semctl_args.semid = 42;
   mock.args.semctl_args.semnum = 0;
@@ -717,31 +722,10 @@ TEST_F(SemaphoreVTest, ValueOfSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, ValueOfFails) {
-  // First create a semaphore to get a valid semid
+  SemaphoreV *sem = createSemaphore();
+
+  // Test valueOf failure
   MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
-
-  // Now test valueOf failure
   mock.syscall = MOCK_SEMCTL;
   mock.args.semctl_args.semid = 42;
   mock.args.semctl_args.semnum = 0;
@@ -761,31 +745,10 @@ TEST_F(SemaphoreVTest, ValueOfFails) {
 }
 
 TEST_F(SemaphoreVTest, RefsSucceeds) {
-  // First create a semaphore to get a valid semid
+  SemaphoreV *sem = createSemaphore();
+
+  // Test refs
   MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
-
-  // Now test refs
   mock.syscall = MOCK_SEMCTL;
   mock.args.semctl_args.semid = 42;
   mock.args.semctl_args.semnum = 1; // REF_COUNT
@@ -801,31 +764,10 @@ TEST_F(SemaphoreVTest, RefsSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, RefsFails) {
-  // First create a semaphore to get a valid semid
+  SemaphoreV *sem = createSemaphore();
+
+  // Test refs failure
   MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
-
-  // Now test refs failure
   mock.syscall = MOCK_SEMCTL;
   mock.args.semctl_args.semid = 42;
   mock.args.semctl_args.semnum = 1; // REF_COUNT
@@ -845,32 +787,11 @@ TEST_F(SemaphoreVTest, RefsFails) {
 }
 
 TEST_F(SemaphoreVTest, WaitSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test wait()
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -886,32 +807,11 @@ TEST_F(SemaphoreVTest, WaitSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, WaitValueSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test wait(3)
   struct sembuf expected_sops[1] = {{0, -3, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -927,34 +827,13 @@ TEST_F(SemaphoreVTest, WaitValueSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test wait with EINTR
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO}};
 
   // First attempt - interrupted
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -988,32 +867,11 @@ TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
 }
 
 TEST_F(SemaphoreVTest, WaitFails) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test wait failure
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1033,32 +891,11 @@ TEST_F(SemaphoreVTest, WaitFails) {
 }
 
 TEST_F(SemaphoreVTest, TryWaitSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test trywait success
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1074,32 +911,11 @@ TEST_F(SemaphoreVTest, TryWaitSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test trywait with specific value
   struct sembuf expected_sops[1] = {{0, -3, SEM_UNDO | IPC_NOWAIT}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1115,32 +931,11 @@ TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test trywait returns false when EAGAIN
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1156,34 +951,13 @@ TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
 }
 
 TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test trywait with EINTR interrupts
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
 
   // First attempt - interrupted
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1217,32 +991,11 @@ TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
 }
 
 TEST_F(SemaphoreVTest, TryWaitFails) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test trywait failure with ERANGE
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1262,32 +1015,11 @@ TEST_F(SemaphoreVTest, TryWaitFails) {
 }
 
 TEST_F(SemaphoreVTest, PostSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test post success
   struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1303,32 +1035,11 @@ TEST_F(SemaphoreVTest, PostSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, PostValueSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test post with specific value
   struct sembuf expected_sops[1] = {{0, 3, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1344,34 +1055,13 @@ TEST_F(SemaphoreVTest, PostValueSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test post with EINTR interrupts
   struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
 
   // First attempt - interrupted
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1405,32 +1095,11 @@ TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
 }
 
 TEST_F(SemaphoreVTest, PostFails) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test post failure with ENOSPC
   struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1450,32 +1119,11 @@ TEST_F(SemaphoreVTest, PostFails) {
 }
 
 TEST_F(SemaphoreVTest, CloseSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test close success
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1491,32 +1139,11 @@ TEST_F(SemaphoreVTest, CloseSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test close with EAGAIN followed by successful IPC_RMID
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1540,32 +1167,11 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
 }
 
 TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test close with EAGAIN followed by failed IPC_RMID
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1593,34 +1199,13 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
 }
 
 TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test close with EINTR interrupts
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
 
   // First attempt - interrupted
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
@@ -1654,32 +1239,11 @@ TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
 }
 
 TEST_F(SemaphoreVTest, CloseFails) {
-  // First create a semaphore to get a valid semid
-  MockCall mock{};
-  Token key = createToken();
-
-  mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
-  mock.return_value = 42;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
-  mock.return_value = 0;
-  mock.errno_value = 0;
-  mock_push_expected_call(mock);
-
-  SemaphoreV *sem = SemaphoreV::createExclusive(key, 0xFFFFFFFF, 1);
-  EXPECT_NE(sem, nullptr);
+  SemaphoreV *sem = createSemaphore();
 
   // Test close failure with ENOSPC
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
+  MockCall mock{};
   mock.syscall = MOCK_SEMOP;
   mock.args.semop_args.semid = 42;
   mock.args.semop_args.nsops = 1;
