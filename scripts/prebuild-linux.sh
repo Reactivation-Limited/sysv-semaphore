@@ -1,6 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 npm ci
+
+npm run gtest
 
 for ARCH in arm64 i386 amd64
 do
