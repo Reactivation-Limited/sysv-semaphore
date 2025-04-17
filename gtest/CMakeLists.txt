@@ -22,16 +22,19 @@ include_directories(
 
 # Build mock_syscalls as a shared library
 add_library(mocksys SHARED
-    ../src/mock_syscalls.cpp
+    ../src/mock/syscalls.cpp
     ../src-vendor/errnoname/errnoname.c
 )
 
 # Add GTest include directory to mocksys target
-target_include_directories(mocksys PUBLIC ${googletest_SOURCE_DIR}/googletest/include)
+target_include_directories(mocksys PUBLIC 
+    ${googletest_SOURCE_DIR}/googletest/include
+    ../src/mock
+)
 
 # Create mock_syscalls test executable
 add_executable(mock_syscalls_tests
-    ../src/mock_syscalls.test.cpp
+    ../src/mock/syscalls.test.cpp
 )
 
 # Link against GoogleTest and mocksys library

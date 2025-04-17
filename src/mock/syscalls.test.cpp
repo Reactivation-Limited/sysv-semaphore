@@ -1,4 +1,4 @@
-#include "mock_syscalls.hpp"
+#include "syscalls.h"
 #include <cerrno>
 #include <gtest/gtest.h>
 #include <sys/sem.h>

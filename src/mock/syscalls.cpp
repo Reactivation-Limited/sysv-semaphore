@@ -1,5 +1,4 @@
-#include "mock_syscalls.hpp"
-#include "errnoname.hpp"
+#include "syscalls.h"
 #include <cerrno>
 #include <cstdarg>
 #include <cstdio>

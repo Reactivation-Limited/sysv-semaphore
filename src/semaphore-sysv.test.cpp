@@ -1,5 +1,5 @@
 #include "semaphore-sysv.h"
-#include "mock_syscalls.hpp"
+#include "mock/syscalls.h"
 #include <cerrno>
 #include <errnoname.c>
 #include <errnoname.h>
