@@ -12,12 +12,7 @@ static const char *const syscall_names[4] = {"MOCK_SEMGET", "MOCK_SEMOP", "MOCK_
 
 static std::queue<MockCall> call_queue;
 
-void mock_push_expected_call(MockCall call) {
-  printf("push a call to %s returning %d errno %s\n", syscall_names[call.syscall], call.return_value,
-         errnoname(call.errno_value));
-  call_queue.push(call);
-  printf("pushed a call, queue size: %zu\n", call_queue.size());
-}
+void mock_push_expected_call(MockCall call) { call_queue.push(call); }
 
 void mock_reset(void) {
   while (!call_queue.empty()) {
@@ -26,17 +21,12 @@ void mock_reset(void) {
 }
 
 static MockCall pop_call(MockSyscall expected_syscall) {
-  printf("pop a mock call %s\n", syscall_names[expected_syscall]);
-
   if (call_queue.empty()) {
     throw MockFailure("[MOCK] No calls left in queue");
   }
 
   MockCall call = call_queue.front();
   call_queue.pop();
-
-  printf("pop a call to %s returning %d errno %s\n", syscall_names[call.syscall], call.return_value,
-         errnoname(call.errno_value));
 
   if (call.syscall != expected_syscall) {
     std::stringstream ss;
@@ -51,7 +41,6 @@ static MockCall pop_call(MockSyscall expected_syscall) {
 // ---------------- Mocks ------------------
 
 extern "C" int semget(key_t key, int nsems, int semflg) {
-  printf("mock semget %d %d %o\n", key, nsems, semflg);
   MockCall call = pop_call(MOCK_SEMGET);
 
   if (call.args.semget_args.key != key || call.args.semget_args.nsems != nsems ||
@@ -63,13 +52,10 @@ extern "C" int semget(key_t key, int nsems, int semflg) {
        << call.args.semget_args.semflg;
     throw MockFailure(ss.str());
   }
-
-  printf("mock semget returned %d errno %s\n", call.return_value, errnoname(errno));
   return call.return_value;
 }
 
 extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
-  printf("mock semop %d %p %zu\n", semid, sops, nsops);
   MockCall call = pop_call(MOCK_SEMOP);
 
   // here need to check the sembuf, which gets complicated
@@ -102,7 +88,6 @@ extern "C" int semctl(int semid, int semnum, int cmd, ...) {
   semun arg = va_arg(ap, semun);
   va_end(ap);
 
-  printf("mock semctl %d %d %d val %d\n", semid, semnum, cmd, arg.val);
   MockCall call = pop_call(MOCK_SEMCTL);
 
   if (call.args.semctl_args.semid != semid || call.args.semctl_args.semnum != semnum ||
@@ -128,7 +113,6 @@ extern "C" int semctl(int semid, int semnum, int cmd, ...) {
 }
 
 extern "C" key_t ftok(const char *pathname, int proj_id) {
-  printf("mock ftok %s %d\n", pathname, proj_id);
   MockCall call = pop_call(MOCK_FTOK);
 
   if (strcmp(call.args.ftok_args.pathname, pathname) != 0 || call.args.ftok_args.proj_id != proj_id) {
