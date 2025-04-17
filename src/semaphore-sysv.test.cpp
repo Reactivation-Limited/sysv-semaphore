@@ -33,18 +33,18 @@ protected:
 
     MockCall mock{};
     mock.syscall = MOCK_SEMGET;
-    mock.args.semget_args.key = key.valueOf();
-    mock.args.semget_args.nsems = 2;
-    mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+    mock.args.semget.key = key.valueOf();
+    mock.args.semget.nsems = 2;
+    mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
     mock.return_value = 42;
     mock.errno_value = 0;
     mock_push_expected_call(mock);
 
     mock.syscall = MOCK_SEMCTL;
-    mock.args.semctl_args.semid = 42;
-    mock.args.semctl_args.semnum = 0;
-    mock.args.semctl_args.cmd = SETVAL;
-    mock.args.semctl_args.arg.val = 1;
+    mock.args.semctl.semid = 42;
+    mock.args.semctl.semnum = 0;
+    mock.args.semctl.cmd = SETVAL;
+    mock.args.semctl.arg.val = 1;
     mock.return_value = 0;
     mock.errno_value = 0;
     mock_push_expected_call(mock);
@@ -60,18 +60,18 @@ TEST_F(SemaphoreVTest, CreateExclusiveSucceeds) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL; // check the mode is masked
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL; // check the mode is masked
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = SETVAL;
+  mock.args.semctl.arg.val = 1;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -88,9 +88,9 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsWhenExists) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
@@ -110,18 +110,18 @@ TEST_F(SemaphoreVTest, CreateExclusiveFailsOnSemctlError) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = SETVAL;
+  mock.args.semctl.arg.val = 1;
   mock.return_value = -1;
   mock.errno_value = ERANGE;
   mock_push_expected_call(mock);
@@ -141,9 +141,9 @@ TEST_F(SemaphoreVTest, OpenSucceeds) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0; // No creation flags for open
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0; // No creation flags for open
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -152,9 +152,9 @@ TEST_F(SemaphoreVTest, OpenSucceeds) {
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
 
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -171,9 +171,9 @@ TEST_F(SemaphoreVTest, OpenFailsWhenNotExists) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = -1;
   mock.errno_value = ENOENT;
   mock_push_expected_call(mock);
@@ -193,9 +193,9 @@ TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -204,9 +204,9 @@ TEST_F(SemaphoreVTest, OpenFailsOnSemopError) {
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
 
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ENOSPC;
   mock_push_expected_call(mock);
@@ -226,9 +226,9 @@ TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -238,27 +238,27 @@ TEST_F(SemaphoreVTest, OpenSucceedsAfterInterrupts) {
 
   // First semop call - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second semop call - interrupted again
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third semop call - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -275,18 +275,18 @@ TEST_F(SemaphoreVTest, CreateSucceedsFirstTry) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = SETVAL;
+  mock.args.semctl.arg.val = 1;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -304,18 +304,18 @@ TEST_F(SemaphoreVTest, CreateSucceedsWithExisting) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try succeeds
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -323,9 +323,9 @@ TEST_F(SemaphoreVTest, CreateSucceedsWithExisting) {
   // Increment ref count
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -343,37 +343,37 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterRace) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try fails with ENOENT (race - someone deleted it)
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = -1;
   mock.errno_value = ENOENT;
   mock_push_expected_call(mock);
 
   // Third try succeeds (loop iteration)
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   // Set initial value
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = SETVAL;
+  mock.args.semctl.arg.val = 1;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -391,18 +391,18 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterSemopInterrupts) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try succeeds
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -412,27 +412,27 @@ TEST_F(SemaphoreVTest, CreateSucceedsAfterSemopInterrupts) {
 
   // First semop call - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second semop call - interrupted again
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third semop call - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -450,9 +450,9 @@ TEST_F(SemaphoreVTest, CreateFailsOnFirstSemgetError) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EACCES;
   mock_push_expected_call(mock);
@@ -473,18 +473,18 @@ TEST_F(SemaphoreVTest, CreateFailsOnSecondSemgetError) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try fails with EINVAL
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = -1;
   mock.errno_value = EINVAL;
   mock_push_expected_call(mock);
@@ -504,18 +504,18 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemctlError) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = SETVAL;
-  mock.args.semctl_args.arg.val = 1;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = SETVAL;
+  mock.args.semctl.arg.val = 1;
   mock.return_value = -1;
   mock.errno_value = ERANGE;
   mock_push_expected_call(mock);
@@ -536,18 +536,18 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemopError) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try succeeds
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -555,9 +555,9 @@ TEST_F(SemaphoreVTest, CreateFailsOnSemopError) {
   // semop fails
   struct sembuf expected_sops[1] = {{1, 1, SEM_UNDO}};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ENOSPC;
   mock_push_expected_call(mock);
@@ -578,18 +578,18 @@ TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
 
   // First try fails with EEXIST
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0777 | IPC_CREAT | IPC_EXCL;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0777 | IPC_CREAT | IPC_EXCL;
   mock.return_value = -1;
   mock.errno_value = EEXIST;
   mock_push_expected_call(mock);
 
   // Second try succeeds
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 0;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 0;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -598,18 +598,18 @@ TEST_F(SemaphoreVTest, CreateFailsAfterSemopInterrupt) {
 
   // First semop call - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second semop call - fails
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ENOSPC;
   mock_push_expected_call(mock);
@@ -629,17 +629,17 @@ TEST_F(SemaphoreVTest, UnlinkSucceeds) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = IPC_RMID;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -655,9 +655,9 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemget) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = -1;
   mock.errno_value = ENOENT;
   mock_push_expected_call(mock);
@@ -677,17 +677,17 @@ TEST_F(SemaphoreVTest, UnlinkFailsOnSemctl) {
   Token key = createToken();
 
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = key.valueOf();
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0;
+  mock.args.semget.key = key.valueOf();
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0;
   mock.return_value = 42;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = IPC_RMID;
   mock.return_value = -1;
   mock.errno_value = EPERM;
   mock_push_expected_call(mock);
@@ -708,9 +708,9 @@ TEST_F(SemaphoreVTest, ValueOfSucceeds) {
   // Test valueOf
   MockCall mock{};
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = GETVAL;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = GETVAL;
   mock.return_value = 5; // Current value of the semaphore
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -727,9 +727,9 @@ TEST_F(SemaphoreVTest, ValueOfFails) {
   // Test valueOf failure
   MockCall mock{};
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = GETVAL;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = GETVAL;
   mock.return_value = -1;
   mock.errno_value = EPERM;
   mock_push_expected_call(mock);
@@ -750,9 +750,9 @@ TEST_F(SemaphoreVTest, RefsSucceeds) {
   // Test refs
   MockCall mock{};
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 1; // REF_COUNT
-  mock.args.semctl_args.cmd = GETVAL;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 1; // REF_COUNT
+  mock.args.semctl.cmd = GETVAL;
   mock.return_value = 3; // Current reference count
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -769,9 +769,9 @@ TEST_F(SemaphoreVTest, RefsFails) {
   // Test refs failure
   MockCall mock{};
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 1; // REF_COUNT
-  mock.args.semctl_args.cmd = GETVAL;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 1; // REF_COUNT
+  mock.args.semctl.cmd = GETVAL;
   mock.return_value = -1;
   mock.errno_value = EPERM;
   mock_push_expected_call(mock);
@@ -793,9 +793,9 @@ TEST_F(SemaphoreVTest, WaitSucceeds) {
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -813,9 +813,9 @@ TEST_F(SemaphoreVTest, WaitValueSucceeds) {
   struct sembuf expected_sops[1] = {{0, -3, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -835,27 +835,27 @@ TEST_F(SemaphoreVTest, WaitSucceedsAfterInterrupt) {
   // First attempt - interrupted
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second attempt - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third attempt - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -873,9 +873,9 @@ TEST_F(SemaphoreVTest, WaitFails) {
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EAGAIN;
   mock_push_expected_call(mock);
@@ -897,9 +897,9 @@ TEST_F(SemaphoreVTest, TryWaitSucceeds) {
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -917,9 +917,9 @@ TEST_F(SemaphoreVTest, TryWaitValueSucceeds) {
   struct sembuf expected_sops[1] = {{0, -3, SEM_UNDO | IPC_NOWAIT}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -937,9 +937,9 @@ TEST_F(SemaphoreVTest, TryWaitWouldBlock) {
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EAGAIN;
   mock_push_expected_call(mock);
@@ -959,27 +959,27 @@ TEST_F(SemaphoreVTest, TryWaitSucceedsAfterInterrupts) {
   // First attempt - interrupted
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second attempt - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third attempt - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -997,9 +997,9 @@ TEST_F(SemaphoreVTest, TryWaitFails) {
   struct sembuf expected_sops[1] = {{0, -1, SEM_UNDO | IPC_NOWAIT}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ERANGE;
   mock_push_expected_call(mock);
@@ -1021,9 +1021,9 @@ TEST_F(SemaphoreVTest, PostSucceeds) {
   struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1041,9 +1041,9 @@ TEST_F(SemaphoreVTest, PostValueSucceeds) {
   struct sembuf expected_sops[1] = {{0, 3, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1063,27 +1063,27 @@ TEST_F(SemaphoreVTest, PostSucceedsAfterInterrupts) {
   // First attempt - interrupted
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second attempt - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third attempt - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1101,9 +1101,9 @@ TEST_F(SemaphoreVTest, PostFails) {
   struct sembuf expected_sops[1] = {{0, 1, SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ENOSPC;
   mock_push_expected_call(mock);
@@ -1125,9 +1125,9 @@ TEST_F(SemaphoreVTest, CloseSucceeds) {
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1145,17 +1145,17 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidSucceeds) {
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EAGAIN;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = IPC_RMID;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1173,17 +1173,17 @@ TEST_F(SemaphoreVTest, CloseWithEagainAndRmidFails) {
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EAGAIN;
   mock_push_expected_call(mock);
 
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 42;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = IPC_RMID;
+  mock.args.semctl.semid = 42;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = IPC_RMID;
   mock.return_value = -1;
   mock.errno_value = EPERM;
   mock_push_expected_call(mock);
@@ -1207,27 +1207,27 @@ TEST_F(SemaphoreVTest, CloseSucceedsAfterInterrupts) {
   // First attempt - interrupted
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Second attempt - interrupted
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = EINTR;
   mock_push_expected_call(mock);
 
   // Third attempt - succeeds
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = 0;
   mock.errno_value = 0;
   mock_push_expected_call(mock);
@@ -1245,9 +1245,9 @@ TEST_F(SemaphoreVTest, CloseFails) {
   struct sembuf expected_sops[1] = {{1, -1, IPC_NOWAIT | SEM_UNDO}};
   MockCall mock{};
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 42;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = expected_sops;
+  mock.args.semop.semid = 42;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = expected_sops;
   mock.return_value = -1;
   mock.errno_value = ENOSPC;
   mock_push_expected_call(mock);

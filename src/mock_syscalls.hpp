@@ -35,20 +35,20 @@ typedef struct {
       key_t key;
       int nsems;
       int semflg;
-    } semget_args;
+    } semget;
 
     struct {
       int semid;
       const struct sembuf *sops;
       size_t nsops;
-    } semop_args;
+    } semop;
 
     struct {
       int semid;
       int semnum;
       int cmd;
       semun arg;
-    } semctl_args;
+    } semctl;
 
     struct {
       const char *pathname;

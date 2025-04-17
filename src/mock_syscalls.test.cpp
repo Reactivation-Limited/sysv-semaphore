@@ -36,9 +36,9 @@ TEST_F(MockSyscallsTest, FtokMockWorks) {
 TEST_F(MockSyscallsTest, SemgetMockWorks) {
   MockCall mock;
   mock.syscall = MOCK_SEMGET;
-  mock.args.semget_args.key = 1234;
-  mock.args.semget_args.nsems = 2;
-  mock.args.semget_args.semflg = 0600;
+  mock.args.semget.key = 1234;
+  mock.args.semget.nsems = 2;
+  mock.args.semget.semflg = 0600;
   mock.return_value = 5678;
   mock.errno_value = 0;
 
@@ -51,9 +51,9 @@ TEST_F(MockSyscallsTest, SemopMockWorks) {
 
   MockCall mock;
   mock.syscall = MOCK_SEMOP;
-  mock.args.semop_args.semid = 1234;
-  mock.args.semop_args.nsops = 1;
-  mock.args.semop_args.sops = ops;
+  mock.args.semop.semid = 1234;
+  mock.args.semop.nsops = 1;
+  mock.args.semop.sops = ops;
   mock.return_value = 0;
   mock.errno_value = 0;
 
@@ -64,9 +64,9 @@ TEST_F(MockSyscallsTest, SemopMockWorks) {
 TEST_F(MockSyscallsTest, SemctlMockWorks) {
   MockCall mock;
   mock.syscall = MOCK_SEMCTL;
-  mock.args.semctl_args.semid = 1234;
-  mock.args.semctl_args.semnum = 0;
-  mock.args.semctl_args.cmd = GETVAL;
+  mock.args.semctl.semid = 1234;
+  mock.args.semctl.semnum = 0;
+  mock.args.semctl.cmd = GETVAL;
   mock.return_value = 5;
   mock.errno_value = 0;
 
@@ -86,19 +86,19 @@ TEST_F(MockSyscallsTest, MockCallsRunInOrder) {
 
   MockCall mock2;
   mock2.syscall = MOCK_SEMGET;
-  mock2.args.semget_args.key = 1234;
-  mock2.args.semget_args.nsems = 2;
-  mock2.args.semget_args.semflg = 0600;
+  mock2.args.semget.key = 1234;
+  mock2.args.semget.nsems = 2;
+  mock2.args.semget.semflg = 0600;
   mock2.return_value = 5678;
   mock2.errno_value = 0;
   mock_push_expected_call(mock2);
 
   MockCall mock3;
   mock3.syscall = MOCK_SEMCTL;
-  mock3.args.semctl_args.semid = 5678;
-  mock3.args.semctl_args.semnum = 0;
-  mock3.args.semctl_args.cmd = SETVAL;
-  mock3.args.semctl_args.arg.val = 1;
+  mock3.args.semctl.semid = 5678;
+  mock3.args.semctl.semnum = 0;
+  mock3.args.semctl.cmd = SETVAL;
+  mock3.args.semctl.arg.val = 1;
   mock3.return_value = 0;
   mock3.errno_value = 0;
   mock_push_expected_call(mock3);

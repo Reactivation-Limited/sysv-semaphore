@@ -43,13 +43,11 @@ static MockCall pop_call(MockSyscall expected_syscall) {
 extern "C" int semget(key_t key, int nsems, int semflg) {
   MockCall call = pop_call(MOCK_SEMGET);
 
-  if (call.args.semget_args.key != key || call.args.semget_args.nsems != nsems ||
-      call.args.semget_args.semflg != semflg) {
+  if (call.args.semget.key != key || call.args.semget.nsems != nsems || call.args.semget.semflg != semflg) {
     std::stringstream ss;
     ss << "[MOCK] semget args mismatch: called with key=" << key << " nsems=" << nsems << std::oct
-       << " semflg=" << std::oct << semflg << " but expected key=" << std::dec << call.args.semget_args.key
-       << " nsems=" << call.args.semget_args.nsems << std::oct << " semflg=" << std::oct
-       << call.args.semget_args.semflg;
+       << " semflg=" << std::oct << semflg << " but expected key=" << std::dec << call.args.semget.key
+       << " nsems=" << call.args.semget.nsems << std::oct << " semflg=" << std::oct << call.args.semget.semflg;
     throw MockFailure(ss.str());
   }
   return call.return_value;
@@ -59,16 +57,16 @@ extern "C" int semop(int semid, struct sembuf *sops, size_t nsops) {
   MockCall call = pop_call(MOCK_SEMOP);
 
   // here need to check the sembuf, which gets complicated
-  if (call.args.semop_args.semid != semid || call.args.semop_args.nsops != nsops) {
+  if (call.args.semop.semid != semid || call.args.semop.nsops != nsops) {
     std::stringstream ss;
     ss << "[MOCK] semop args mismatch: called with semid=" << semid << " nsops=" << nsops
-       << " but expected semid=" << call.args.semop_args.semid << " nsops=" << call.args.semop_args.nsops;
+       << " but expected semid=" << call.args.semop.semid << " nsops=" << call.args.semop.nsops;
     throw MockFailure(ss.str());
   }
 
   // Validate each sembuf in the array
   for (size_t i = 0; i < nsops; i++) {
-    const sembuf &op = call.args.semop_args.sops[i];
+    const sembuf &op = call.args.semop.sops[i];
 
     if (op.sem_num != sops[i].sem_num || op.sem_op != sops[i].sem_op || op.sem_flg != sops[i].sem_flg) {
       std::stringstream ss;
@@ -90,21 +88,20 @@ extern "C" int semctl(int semid, int semnum, int cmd, ...) {
 
   MockCall call = pop_call(MOCK_SEMCTL);
 
-  if (call.args.semctl_args.semid != semid || call.args.semctl_args.semnum != semnum ||
-      call.args.semctl_args.cmd != cmd) {
+  if (call.args.semctl.semid != semid || call.args.semctl.semnum != semnum || call.args.semctl.cmd != cmd) {
     std::stringstream ss;
     ss << "[MOCK] semctl args mismatch: called with semid=" << semid << " semnum=" << semnum << " cmd=" << cmd
-       << " but expected semid=" << call.args.semctl_args.semid << " semnum=" << call.args.semctl_args.semnum
-       << " cmd=" << call.args.semctl_args.cmd;
+       << " but expected semid=" << call.args.semctl.semid << " semnum=" << call.args.semctl.semnum
+       << " cmd=" << call.args.semctl.cmd;
     throw MockFailure(ss.str());
   }
 
   if (cmd == SETVAL) {
     // For SETVAL, the argument is passed directly as an int
-    if (arg.val != call.args.semctl_args.arg.val) {
+    if (arg.val != call.args.semctl.arg.val) {
       std::stringstream ss;
       ss << "[MOCK] semctl SETVAL value mismatch: called with val=" << arg.val
-         << " but expected val=" << call.args.semctl_args.arg.val;
+         << " but expected val=" << call.args.semctl.arg.val;
       throw MockFailure(ss.str());
     }
   }
