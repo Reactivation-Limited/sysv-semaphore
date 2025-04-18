@@ -1,7 +1,10 @@
 {
   "name": "sysv-semaphore",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "node bindings for Unix System V Semaphores",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "main": "index.js",
   "scripts": {
     "clean": "scripts/clean.sh",
@@ -18,9 +21,6 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "clang-format": "1.8.0",
-    "colors": "1.4.0",
-    "debug": "4.3.4",
     "node-addon-api": "*",
     "node-gyp-build": "4.8.4"
   },
@@ -28,6 +28,8 @@
   "license": "ISC",
   "gypfile": true,
   "devDependencies": {
+    "clang-format": "1.8.0",
+    "debug": "4.3.4",
     "@eslint/js": "9.2.0",
     "eslint": "8.57.0",
     "eslint-plugin-jest": "28.5.0",

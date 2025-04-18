@@ -1,0 +1,17 @@
+node
+/.*
+/.vscode/**
+/*.sublime*
+/coverage/
+/build/
+/debug
+/Dockerfile
+/*.config.js
+/gtest/
+/node_modules/
+/jest-*
+/test
+/scripts
+/sysv-semaphore-*.tgz
+
+

@@ -8,7 +8,7 @@ Should work on any system that supports System V semaphores. YMMV. If it breaks,
 
 - Node.js 14.x or later
 - A Unix-like operating system with System V IPC support
-- Prebuilt binaries supported: Linux (x64, arm64) OSX (x64, arm64)
+- Prebuilt binaries supported: Linux (x64, arm64, i386) OSX (x64, arm64)
 - otherwise, C++ build tools (for native compilation)
 
 ## Installation
