@@ -1,7 +1,19 @@
 {
   "name": "sysv-semaphore",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "node bindings for Unix System V Semaphores",
+  "keywords": [
+    "semaphore",
+    "ipc",
+    "system-v",
+    "sysv",
+    "process",
+    "synchronization",
+    "mutex",
+    "lock",
+    "unix",
+    "SEM_UNDO"
+  ],
   "engines": {
     "node": ">=14.0.0"
   },
