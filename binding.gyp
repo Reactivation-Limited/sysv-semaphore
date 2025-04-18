@@ -16,22 +16,6 @@
           "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
         }
       }]
-    ],
-    "rules": [
-      {
-        "rule_name": "swig",
-        "extension": "i",
-        "inputs": ["<(RULE_INPUT_PATH)"],
-        "outputs": ["<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).cpp"],
-        "action": ["swig", "-c++", "-javascript", "-napi", "-I./src", "-o", "<@(_outputs)", "<@(_inputs)"],
-        "process_outputs_as_sources": 1
-      }
-    ],
-    "sources": [
-      "src/error.cpp",
-      "src/token.cpp",
-      "src/semaphore-sysv.cpp",
-      "src/main.i"
     ]
   }]
 }

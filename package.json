@@ -25,9 +25,10 @@
     "test:inspect": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand --testTimeout=60000 --collectCoverage=false",
     "build:debug": "node-gyp rebuild --debug",
     "prepare": "husky",
-    "build-darwin": "npm run gtest &&prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
+    "swig": "swig -c++ -javascript -napi -I./src -o src/main.cpp src/main.i",
+    "build-darwin": "npm run gtest && prebuildify --napi --strip --arch arm64 && prebuildify --napi --strip --arch x64",
     "build-linux": "scripts/build-linux.sh",
-    "build": "npm run build-darwin && npm run build-linux",
+    "build": "npm run swig && npm run build-darwin && npm run build-linux",
     "install": "node-gyp-build",
     "format": "clang-format -i --glob='./src/**/*.{h,c,cpp}'; prettier --write './**/*.{js,mjs,cjs,jsx,json,md}'",
     "lint": "eslint src"
