@@ -1,7 +1,19 @@
 {
   "name": "sysv-semaphore",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "node bindings for Unix System V Semaphores",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joncooke/sysv-semaphore.git"
+  },
+  "sideEffects": false,
+  "os": [
+    "darwin",
+    "linux",
+    "freebsd",
+    "openbsd",
+    "sunos"
+  ],
   "keywords": [
     "semaphore",
     "ipc",
