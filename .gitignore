@@ -6,7 +6,5 @@ node
 /node_modules/
 /coverage/
 /build/
-/prebuilds/
 /gtest/*/
 /sysv-semaphore-*.tgz
-
