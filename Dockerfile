@@ -13,4 +13,5 @@ RUN npm cache clean -f
 RUN npm install -g n
 RUN n stable
 
-CMD . scripts/prebuild-linux.sh
+RUN chmod +x scripts/prebuild-linux.sh
+CMD scripts/prebuild-linux.sh
